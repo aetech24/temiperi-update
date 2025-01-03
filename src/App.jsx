@@ -10,18 +10,17 @@ const App = () => {
     return (
         <div className='flex h-screen'>
             {/* Fixed Side Navigation */}
-            <div className='w-64'>
+            <div className='w-64 fixed h-full'>
                 <SideNav />
             </div>
             {/* Main Content Area */}
-            <div className='flex flex-col'>
+            <div className='ml-64 flex-1 flex flex-col'>
                 {/* Fixed Header */}
-                <div className='fixed w-full bg-white z-10 shadow'>
+                <div className='fixed w-[calc(100%-16rem)] bg-white z-10 shadow'>
                     <Header />
                 </div>
                 {/* Scrollable Content Below Header */}
-                <div className='flex-1 pt-[70px]'>
-                    {/* Adjusted padding to match header height */}
+                <div className='flex-1 overflow-y-scroll pt-[70px]'>
                     <Routes>
                         <Route path='/*' element={<Products />} />
                         <Route path='/submit-order' element={<Orders />} />

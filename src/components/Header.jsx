@@ -16,7 +16,7 @@ const Header = () => {
     });
 
     return (
-        <div className='w-full px-6 py-2 shadow bg-white'>
+        <div className='w-full px-6 py-4 shadow bg-white'>
             <div className='flex items-center justify-between'>
                 {/* Date and Time */}
                 <div className="flex flex-col gap-1">
@@ -25,7 +25,7 @@ const Header = () => {
                 </div>
 
                 {/* Search Input */}
-                <div className='w-1/4 mr-64 bg-blue bg-opacity-20 rounded-full px-4 py-2 flex items-center '>
+                <div className='w-1/4 bg-blue bg-opacity-20 rounded-full px-4 py-2 flex items-center '>
                     <input
                         type="search"
                         className='w-full outline-none bg-blue bg-opacity-0 placeholder-gray-500'
