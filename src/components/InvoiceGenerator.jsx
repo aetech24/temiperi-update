@@ -11,6 +11,7 @@ function InvoiceGenerator({ value, loading }) {
         backgroundColor: '#f5f5f5',
         cursor: 'not-allowed'
       }}
+      className='border p-2 rounded-md border-black outline-none'
     />
   );
 }
