@@ -32,6 +32,9 @@ const Orders = () => {
     const [showActionModal, setShowActionModal] = useState(false);
     const [products, setProducts] = useState([]);
     const [previewItems, setPreviewItems] = useState([]);
+    const [paymentMethod, setPaymentMethod] = useState('');
+    const [cashAmount, setCashAmount] = useState('');
+    const [momoAmount, setMomoAmount] = useState('');
 
     useEffect(() => {
         const savedPreviewItems = localStorage.getItem("previewItems");
@@ -200,7 +203,7 @@ const Orders = () => {
           const invoiceData = {
             invoiceNumber: data.invoiceNumber,
             customerName: data.customerName,
-            paymentMethod: data.paymentMethod,
+            paymentMethod: paymentMethod,
             items: finalItems.map((item) => ({
               description: item.description,
               quantity: item.quantity,
@@ -213,7 +216,7 @@ const Orders = () => {
           const orderPayload = {
             invoiceNumber: data.invoiceNumber,
             customerName: data.customerName,
-            paymentMethod: data.paymentMethod,
+            paymentMethod: paymentMethod,
             items: finalItems.map((item) => ({
               description: item.description,
               quantity: item.quantity,
@@ -222,19 +225,22 @@ const Orders = () => {
           };
     
           // Submit the invoice
-          await axios.post(`${baseURL}/invoice`, invoiceData, {
+          await axios.post('https://temiperi-stocks-backend.onrender.com/temiperi/invoice', invoiceData, {
             headers: {
               "Content-Type": "application/json",
             },
           });
     
           //submit the order
-          const orderResponse = await axios.post(`${baseURL}/order`, orderPayload, {
+          const orderResponse = await axios.post('https://temiperi-stocks-backend.onrender.com/temiperi/order', orderPayload, {
             headers: {
               "Content-Type": "application/json",
             },
           });
-    
+
+          // Reload the page after successful submission
+          window.location.reload();
+
           if (orderResponse.status === 201) {
             toast.success("Order submitted successfully!", {
               position: "top-right",
@@ -280,6 +286,14 @@ const Orders = () => {
           );
         }
       };
+
+    const handlePaymentMethodChange = (e) => {
+        setPaymentMethod(e.target.value);
+        if (e.target.value !== 'partly-momo-partly-cash') {
+            setCashAmount('');
+            setMomoAmount('');
+        }
+    };
 
     const generatePDF = async () => {
         const invoice = document.getElementById("invoice-content");
@@ -431,7 +445,7 @@ const Orders = () => {
     };
 
     return(
-        <div className='pt-6 px-6 flex gap-6 flex-col lg:flex-row'>
+        <div className='pt-4 px-6 flex gap-6 flex-col lg:flex-row'>
             <div className='flex flex-col gap-4 flex-1'>
                 <h1 className='text-3xl font-medium'>Submit Order</h1>
                 <form onSubmit={handleSubmit} className='flex flex-col gap-2'>
@@ -453,12 +467,11 @@ const Orders = () => {
                     className='border p-2 rounded-md border-black outline-none'
                     />
                     </label>
-                    <label className='flex flex-col gap-2'>
+                    <label className='flex flex-col gap-1'>
                         Payment Method:
                         <select
-                        name="paymentMethod"
-                        value={data.paymentMethod}
-                        onChange={onChangeHandler}
+                        value={paymentMethod}
+                        onChange={handlePaymentMethodChange}
                         required
                         className='border p-2 rounded-md border-black outline-none'
                         >
@@ -466,8 +479,33 @@ const Orders = () => {
                         <option value="cash">Cash</option>
                         <option value="momo">Mobile Money</option>
                         <option value="credit">Credit</option>
+                        <option value="momo/cash">Partly Mobile Money And Partly Cash</option>
                         </select>
                     </label>
+                    {paymentMethod === 'momo/cash' && (
+                        <div className='flex items-center gap-6'>
+                            <label className='flex flex-col gap-1'>
+                                Amount Paid by Cash:
+                                <input
+                                type='number'
+                                value={cashAmount}
+                                onChange={(e) => setCashAmount(e.target.value)}
+                                className='border p-2 rounded-md border-black outline-none'
+                                placeholder='Enter cash amount'
+                                />
+                            </label>
+                            <label className='flex flex-col gap-1'>
+                                Amount Paid by Momo:
+                                <input
+                                type='number'
+                                value={momoAmount}
+                                onChange={(e) => setMomoAmount(e.target.value)}
+                                className='border p-2 rounded-md border-black outline-none'
+                                placeholder='Enter momo amount'
+                                />
+                            </label>
+                        </div>
+                    )}
                     <h3 className='text-2xl font-medium pt-4'>Add Item</h3>
                     <div className="items">
                         <label className='flex flex-col gap-2'>

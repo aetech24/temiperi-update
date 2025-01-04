@@ -342,7 +342,7 @@ const Invoices = () => {
     };
 
     return (
-        <div className='pt-6 px-6 space-y-6'>
+        <div className='pt-4 px-6 space-y-6'>
             <div className='flex items-center justify-between'>
                 <h1 className='text-3xl font-medium'>Invoices</h1>
                 <button className='bg-blue py-2 px-4 rounded text-white hover:bg-opacity-80'>

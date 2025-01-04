@@ -6,6 +6,11 @@ import { IoMdClose } from 'react-icons/io';
 const SideNav = ({ onClose }) => {
     const location = useLocation();
 
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString("en-US", {
+        year: "numeric"
+    });
+
     const getLinkClass = (path) =>
         location.pathname === path
             ? 'bg-white text-blue w-full py-2 text-center rounded-md'
@@ -39,7 +44,7 @@ const SideNav = ({ onClose }) => {
 
             {/* Company Info */}
             <div className="mt-auto text-center text-white">
-                <p className="text-sm opacity-80"> 2024 | Temiperi Enterprise</p>
+                <p className="text-sm opacity-80"> {formattedDate} | Temiperi Enterprise</p>
             </div>
         </div>
     );

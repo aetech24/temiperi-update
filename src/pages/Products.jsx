@@ -40,7 +40,7 @@ const Products = () => {
   };
 
   return (
-    <div className="w-full pt-6 px-6">
+    <div className="w-full pt-0 px-6">
       <div className="flex items-center justify-between py-6">
         <h1 className="text-3xl font-medium">Available Stocks</h1>
         <div className="bg-blue bg-opacity-20 rounded-full px-2 py-1 group">

@@ -77,7 +77,8 @@ const InvoiceTable = ({ invoices, handlePrint, handleWhatsAppShare }) => {
                                         'bg-blue-100 text-blue-800'}`}>
                                         {invoice.paymentMethod === 'momo' ? 'Mobile Money' :
                                         invoice.paymentMethod === 'credit' ? 'Credit' :
-                                        invoice.paymentMethod === 'cash' ? 'Cash' : 'N/A'}
+                                        invoice.paymentMethod === 'cash' ? 'Cash' :
+                                        invoice.paymentMethod === 'momo/cash' ? 'Mobile Money & Cash' : 'N/A'}
                                     </span>
                                 </div>
                                 <div className="flex justify-end space-x-2 pt-2">
