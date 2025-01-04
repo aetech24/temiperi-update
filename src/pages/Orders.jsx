@@ -306,50 +306,98 @@ const Orders = () => {
       };
 
     const handlePrintInvoice = () => {
-        const printContent = document.querySelector("#invoice-content");
+        const printContent = document.getElementById("invoice-content");
         if (!printContent) {
             toast.error("Print reference not found");
             return;
         }
 
+        // Create a new window for printing
         const printWindow = window.open("", "_blank", "width=800,height=600");
+        
+        // Write the print content with proper styling
         printWindow.document.write(`
+            <!DOCTYPE html>
             <html>
                 <head>
-                    <title>Print Invoice</title>
+                    <title>Invoice #${data.invoiceNumber}</title>
                     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-                    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
-                    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
                     <style>
-                        body { font-family: Arial, sans-serif; }
-                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
-                        th { background-color: #f8f9fa; }
+                        @media print {
+                            @page {
+                                size: A4;
+                                margin: 1cm;
+                            }
+                            body {
+                                font-family: Arial, sans-serif;
+                                line-height: 1.6;
+                                color: #000;
+                            }
+                            .print-header {
+                                text-align: center;
+                                margin-bottom: 20px;
+                            }
+                            .print-content {
+                                padding: 20px;
+                            }
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin: 20px 0;
+                            }
+                            th, td {
+                                padding: 8px;
+                                text-align: left;
+                                border-bottom: 1px solid #ddd;
+                            }
+                            th {
+                                background-color: #f8f9fa;
+                                font-weight: bold;
+                            }
+                            .total-row {
+                                font-weight: bold;
+                            }
+                            .footer {
+                                margin-top: 30px;
+                                text-align: center;
+                                font-size: 0.9em;
+                            }
+                            /* Hide non-printable elements */
+                            .no-print {
+                                display: none !important;
+                            }
+                        }
                     </style>
                 </head>
                 <body>
-                    ${printContent.innerHTML}
+                    <div class="print-content">
+                        ${printContent.innerHTML}
+                    </div>
                 </body>
             </html>
         `);
+
+        // Close the document writing
         printWindow.document.close();
 
-            setTimeout(() => {
-                printWindow.print();
-            // Reload page after print dialog is closed
-                if (printWindow.matchMedia) {
-                const mediaQueryList = printWindow.matchMedia("print");
-                mediaQueryList.addEventListener("change", function (mql) {
-                        if (!mql.matches) {
-                            window.location.reload();
-                        }
-                    });
-                } else {
-                    printWindow.onafterprint = () => {
+        // Wait for resources to load before printing
+        setTimeout(() => {
+            printWindow.print();
+            
+            // Handle print dialog close and page reload
+            if (printWindow.matchMedia) {
+                const mediaQueryList = printWindow.matchMedia('print');
+                mediaQueryList.addEventListener('change', function(mql) {
+                    if (!mql.matches) {
                         window.location.reload();
-                    };
-                }
-        }, 500);
+                    }
+                });
+            } else {
+                printWindow.onafterprint = () => {
+                    window.location.reload();
+                };
+            }
+        }, 1000); // Increased timeout to ensure styles are loaded
     };
 
     const handleShareWhatsApp = () => {

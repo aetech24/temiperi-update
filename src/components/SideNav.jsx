@@ -39,7 +39,7 @@ const SideNav = ({ onClose }) => {
 
             {/* Company Info */}
             <div className="mt-auto text-center text-white">
-                <p className="text-sm opacity-80"> 2024 Temiperi Enterprise</p>
+                <p className="text-sm opacity-80"> 2024 | Temiperi Enterprise</p>
             </div>
         </div>
     );
