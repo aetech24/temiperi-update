@@ -281,8 +281,38 @@ const Orders = () => {
         }
       };
 
+    const generatePDF = async () => {
+        const invoice = document.getElementById("invoice-content");
+        if (!invoice) return null;
+
+        const options = {
+            margin: 1,
+            filename: `Invoice-${data.invoiceNumber}.pdf`,
+            image: { type: "jpeg", quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        };
+
+        try {
+            const pdfBlob = await html2pdf()
+                .set(options)
+                .from(invoice)
+                .outputPdf("blob");
+            return pdfBlob;
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+            return null;
+        }
+      };
+
     const handlePrintInvoice = () => {
-        const printWindow = window.open('', '', 'width=800,height=600');
+        const printContent = document.querySelector("#invoice-content");
+        if (!printContent) {
+            toast.error("Print reference not found");
+            return;
+        }
+
+        const printWindow = window.open("", "_blank", "width=800,height=600");
         printWindow.document.write(`
             <html>
                 <head>
@@ -291,57 +321,25 @@ const Orders = () => {
                     <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
                     <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
                     <style>
-                        @media print {
-                            body {
-                                -webkit-print-color-adjust: exact !important;
-                                print-color-adjust: exact !important;
-                            }
-                            #print-root {
-                                padding: 20px;
-                            }
-                            .bg-gray-800 {
-                                background-color: #1f2937 !important;
-                            }
-                            .text-white {
-                                color: white !important;
-                            }
-                            @page {
-                                size: A4;
-                                margin: 15mm;
-                            }
-                        }
-                        #print-root {
-                            font-family: Arial, sans-serif;
-                        }
+                        body { font-family: Arial, sans-serif; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+                        th { background-color: #f8f9fa; }
                     </style>
                 </head>
                 <body>
-                    <div id="print-root"></div>
+                    ${printContent.innerHTML}
                 </body>
             </html>
         `);
+        printWindow.document.close();
 
-        // Wait for scripts to load
-        setTimeout(() => {
-            // Get the preview content
-            const previewContent = document.getElementById('invoice-content');
-            if (!previewContent) {
-                console.error('Preview content not found');
-                return;
-            }
-
-            // Clone the content to the print window
-            const printRoot = printWindow.document.getElementById('print-root');
-            printRoot.innerHTML = previewContent.outerHTML;
-
-            // Wait for content and styles to be applied
             setTimeout(() => {
                 printWindow.print();
-                
-                // Handle print dialog close
+            // Reload page after print dialog is closed
                 if (printWindow.matchMedia) {
-                    const mediaQueryList = printWindow.matchMedia('print');
-                    mediaQueryList.addEventListener('change', function (mql) {
+                const mediaQueryList = printWindow.matchMedia("print");
+                mediaQueryList.addEventListener("change", function (mql) {
                         if (!mql.matches) {
                             window.location.reload();
                         }
@@ -351,7 +349,6 @@ const Orders = () => {
                         window.location.reload();
                     };
                 }
-            }, 1000);
         }, 500);
     };
 
@@ -386,7 +383,7 @@ const Orders = () => {
     };
 
     return(
-        <div className='pt-6 px-6 flex gap-6'>
+        <div className='pt-6 px-6 flex gap-6 flex-col lg:flex-row'>
             <div className='flex flex-col gap-4 flex-1'>
                 <h1 className='text-3xl font-medium'>Submit Order</h1>
                 <form onSubmit={handleSubmit} className='flex flex-col gap-2'>

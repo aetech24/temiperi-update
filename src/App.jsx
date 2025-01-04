@@ -14,13 +14,13 @@ const App = () => {
                 <SideNav />
             </div>
             {/* Main Content Area */}
-            <div className='ml-64 flex-1 flex flex-col'>
+            <div className='lg:ml-64 flex-1 flex flex-col'>
                 {/* Fixed Header */}
-                <div className='fixed w-[calc(100%-16rem)] bg-white z-10 shadow'>
+                <div className='fixed w-[calc(100%-16rem)] hidden lg:block bg-white z-10 shadow'>
                     <Header />
                 </div>
                 {/* Scrollable Content Below Header */}
-                <div className='flex-1 overflow-y-scroll pt-[70px]'>
+                <div className='flex-1 overflow-y-scroll lg:pt-[70px]'>
                     <Routes>
                         <Route path='/*' element={<Products />} />
                         <Route path='/submit-order' element={<Orders />} />
