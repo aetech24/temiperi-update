@@ -43,11 +43,11 @@ const Preview = ({ data, previewItems }) => {
             <table className="w-full mt-4 bg-white shadow-md rounded-lg overflow-hidden">
                 <thead className="bg-gray-800 text-white uppercase text-sm">
                     <tr>
-                        <th className="p-4 text-left">#</th>
-                        <th className="p-4 text-left">Product</th>
-                        <th className="p-4 text-center">Quantity</th>
-                        <th className="p-4 text-left">Unit Price</th>
-                        <th className="p-4 text-left">Total</th>
+                        <th className="p-2 md:p-4 text-left">#</th>
+                        <th className="p-2 md:p-4 text-left">Product</th>
+                        <th className="p-2 md:p-4 text-center">Quantity</th>
+                        <th className="p-2 md:p-4 text-left">Unit Price</th>
+                        <th className="p-2 md:p-4 text-left">Total</th>
                     </tr>
                 </thead>
                 <tbody>

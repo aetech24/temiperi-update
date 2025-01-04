@@ -483,9 +483,9 @@ const Orders = () => {
                         </select>
                     </label>
                     {paymentMethod === 'momo/cash' && (
-                        <div className='flex flex-col md:flex-row items-center gap-6'>
-                            <label className='flex flex-col gap-1'>
-                                Amount Paid by Cash:
+                        <div className='flex flex-col md:flex-row items-center md:gap-6 gap-2 w-full'>
+                            <label className='flex flex-col gap-1 w-full'>
+                                Amount Paid by Cash:    
                                 <input
                                 type='number'
                                 value={cashAmount}
@@ -494,7 +494,7 @@ const Orders = () => {
                                 placeholder='Enter cash amount'
                                 />
                             </label>
-                            <label className='flex flex-col gap-1'>
+                            <label className='flex flex-col gap-1 w-full'>
                                 Amount Paid by Momo:
                                 <input
                                 type='number'
