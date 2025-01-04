@@ -28,7 +28,7 @@ const Header = ({ searchQuery, setSearchQuery }) => {
         } else if (location.pathname.includes('/invoices')) {
             return 'Search Invoice by Name';
         }
-        return '';
+        return 'Search Products';
     };
 
     return (
