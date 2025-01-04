@@ -32,7 +32,7 @@ const Header = ({ searchQuery, setSearchQuery }) => {
     };
 
     return (
-        <div className='w-full px-4 lg:px-6 py-4 bg-white shadow'>
+        <div className='max-md:w-screen w-full px-4 lg:px-6 py-4 bg-white shadow'>
             <div className='flex flex-col lg:flex-row lg:items-center justify-between gap-4'>
                 {/* Date and Time */}
                 <div className="flex flex-col gap-1">

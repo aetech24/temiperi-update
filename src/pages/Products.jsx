@@ -40,14 +40,14 @@ const Products = () => {
   };
 
   return (
-    <div className="w-full pt-0 px-6">
+    <div className="w-full pt-0 md:px-6">
       <div className="flex items-center justify-between py-6">
-        <h1 className="text-3xl font-medium">Available Stocks</h1>
+        <h1 className="text-2xl md:text-3xl font-medium">Available Stocks</h1>
         <div className="bg-blue bg-opacity-20 rounded-full px-2 py-1 group">
           <select
             value={selectedCategory}
             onChange={(e) => handleCategoryChange(e.target.value)}
-            className="bg-blue py-2 px-6 bg-opacity-0 text-gray-600 outline-none flex-grow group-hover:cursor-pointer"
+            className="bg-blue md:py-2 md:px-6 bg-opacity-0 text-gray-600 outline-none flex-grow group-hover:cursor-pointer"
           >
             <option value="">All Categories</option>
             {categories.map((category, index) => (

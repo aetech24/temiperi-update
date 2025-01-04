@@ -43,7 +43,7 @@ const App = () => {
                 </div>
 
                 {/* Scrollable Content */}
-                <div className='flex-1 overflow-y-auto px-4 lg:px-6 pt-16 lg:pt-0 pb-6'>
+                <div className='flex-1 max-md:w-screen overflow-y-auto px-4 lg:px-6 pt-8 md:pt-16 lg:pt-0 pb-6'>
                     <Routes>
                         <Route path='/*' element={<Products />} />
                         <Route path='/submit-order' element={<Orders />} />

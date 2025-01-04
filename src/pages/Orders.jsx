@@ -289,7 +289,7 @@ const Orders = () => {
 
     const handlePaymentMethodChange = (e) => {
         setPaymentMethod(e.target.value);
-        if (e.target.value !== 'partly-momo-partly-cash') {
+        if (e.target.value !== 'momo/cash') {
             setCashAmount('');
             setMomoAmount('');
         }
@@ -445,10 +445,10 @@ const Orders = () => {
     };
 
     return(
-        <div className='pt-4 px-6 flex gap-6 flex-col lg:flex-row'>
+        <div className='pt-4 md:px-6 flex gap-6 flex-col lg:flex-row w-full'>
             <div className='flex flex-col gap-4 flex-1'>
                 <h1 className='text-3xl font-medium'>Submit Order</h1>
-                <form onSubmit={handleSubmit} className='flex flex-col gap-2'>
+                <form onSubmit={handleSubmit} className='flex flex-col gap-2 '>
                     <label className='flex flex-col gap-1'>
                         Invoice Number
                         <InvoiceGenerator

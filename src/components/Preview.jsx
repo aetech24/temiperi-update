@@ -19,7 +19,7 @@ const Preview = ({ data, previewItems }) => {
         (data.items[0].description ? data.items[0].quantity * data.items[0].price : 0);
     
     return (
-        <div className="mt-8 p-8 border-t-2 border-gray-200 bg-gray-100 rounded-lg shadow-sm" id="invoice-content">
+        <div className="mt-8 p-4 md:p-8 border-t-2 border-gray-200 bg-gray-100 rounded-lg shadow-sm" id="invoice-content">
             {/* Header */}
             <div className="flex justify-between items-center mb-8 pb-5 border-b-2 border-gray-200">
                 <img src={Logo} alt="Company Logo" className="w-24" />
