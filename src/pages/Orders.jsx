@@ -483,7 +483,7 @@ const Orders = () => {
                         </select>
                     </label>
                     {paymentMethod === 'momo/cash' && (
-                        <div className='flex items-center gap-6'>
+                        <div className='flex flex-col md:flex-row items-center gap-6'>
                             <label className='flex flex-col gap-1'>
                                 Amount Paid by Cash:
                                 <input
