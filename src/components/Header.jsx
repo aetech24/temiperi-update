@@ -16,22 +16,28 @@ const Header = () => {
     });
 
     return (
-        <div className='w-full px-6 py-4 shadow bg-white'>
-            <div className='flex items-center justify-between'>
+        <div className='w-full px-4 lg:px-6 py-4 bg-white shadow'>
+            <div className='flex flex-col lg:flex-row lg:items-center justify-between gap-4'>
                 {/* Date and Time */}
                 <div className="flex flex-col gap-1">
-                    <p className='font-medium flex items-center gap-2'><FaRegCalendarAlt className='text-xl font-semibold'/> {formattedDate}</p>
-                    <p className='text-sm text-gray-700 font-medium flex items-center gap-2'><IoMdTime className='text-xl font-semibold'/> {formattedTime}</p>
+                    <p className='font-medium flex items-center gap-2 text-sm lg:text-base'>
+                        <FaRegCalendarAlt className='text-lg lg:text-xl font-semibold'/> 
+                        {formattedDate}
+                    </p>
+                    <p className='text-xs lg:text-sm text-gray-700 font-medium flex items-center gap-2'>
+                        <IoMdTime className='text-lg lg:text-xl font-semibold'/> 
+                        {formattedTime}
+                    </p>
                 </div>
 
                 {/* Search Input */}
-                <div className='w-1/4 bg-blue bg-opacity-20 rounded-full px-4 py-2 flex items-center '>
+                <div className='w-full lg:w-1/3 bg-blue bg-opacity-20 rounded-full px-4 py-2 flex items-center'>
                     <input
                         type="search"
-                        className='w-full outline-none bg-blue bg-opacity-0 placeholder-gray-500'
+                        className='w-full outline-none bg-transparent placeholder-gray-500 text-sm'
                         placeholder="Search for products"
                     />
-                    <IoMdSearch className='text-2xl text-gray-500 hover:text-black cursor-pointer'/>
+                    <IoMdSearch className='text-xl lg:text-2xl text-gray-500 hover:text-black cursor-pointer'/>
                 </div>
             </div>
         </div>
