@@ -418,6 +418,9 @@ const Orders = () => {
         setShowPhonePrompt(true);
     };
 
+    const totalAmount = previewItems.reduce((sum, item) => sum + item.quantity * item.price, 0) +
+        (data.items[0].description ? data.items[0].quantity * data.items[0].price : 0);
+
     const sendToWhatsApp = async () => {
         if (!customerPhone) {
             toast.error("Please enter a phone number");
@@ -431,9 +434,20 @@ const Orders = () => {
         }
 
         // Create a message with invoice details
-        const message = `Hello! Here's your invoice #${data.invoiceNumber}\n\n` +
-            `Total Amount: GH₵${previewItems.reduce((sum, item) => sum + item.quantity * item.price, 0).toFixed(2)}\n\n` +
-            `Thank you for your business!`;
+        // const message = `Hello! Here's your invoice #${data.invoiceNumber}\n\n` +
+        //     `Total Amount: GH₵${previewItems.reduce((sum, item) => sum + item.quantity * item.price, 0).toFixed(2)}\n\n` +
+        //     `Thank you for your business!`;
+
+        const message = 
+          `*TEMIPERI ENTERPRISE*\n\n` +
+          `*Invoice #:* ${data.invoiceNumber}\n` +
+          `*Customer:* ${data.customerName}\n`  +
+          `*Order Details:*\n` +
+          `${data.items.map((item, index) => 
+            `${index + 1}. ${item.description} - Qty: ${item.quantity}, Price: GH₵${item.price.toFixed(2)}`
+          ).join("\n")}\n\n` +
+          `Total Amount: GH₵${totalAmount.toFixed(2)}\n\n` +
+          `Thank you for your business!`;
 
         // Format phone number and create WhatsApp URL
         const formattedPhone = customerPhone.replace(/\D/g, "");
