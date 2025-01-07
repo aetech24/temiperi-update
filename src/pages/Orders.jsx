@@ -1,5 +1,4 @@
-import React from 'react'
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Preview from '../components/Preview';
 import PrintablePreview from '../components/PrintablePreview';
 import InvoiceGenerator from '../components/InvoiceGenerator';
@@ -11,13 +10,36 @@ import { MdOutlinePrint } from "react-icons/md";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import html2pdf from "html2pdf.js";
+import Modal from 'react-modal';
+
+Modal.setAppElement('#root'); // Set the app element for accessibility
+
+const modalStyle = {
+    content: {
+        top: '50%',
+        left: '50%',
+        right: 'auto',
+        bottom: 'auto',
+        marginRight: '-50%',
+        transform: 'translate(-50%, -50%)',
+        width: '500px',
+        height: '300px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: '10px',
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+        backgroundColor: '#fff',
+    },
+};
 
 const baseURL =
   process.env.NODE_ENV === "production"
     ? "https://temiperi-stocks-backend.onrender.com/temiperi"
     : "http://localhost:4000/temiperi";
 
-const Orders = () => {
+const Orders = ({ searchQuery }) => {
     const [data, setData] = useState({
         invoiceNumber: "",
         customerName: "",
@@ -26,7 +48,7 @@ const Orders = () => {
       });
     const [loading, setLoading] = useState(false);
     const [latestInvoiceNumber, setLatestInvoiceNumber] = useState(0);
-    const [searchQuery, setSearchQuery] = useState("");
+    const [search, setSearch] = useState("");
     const [showPhonePrompt, setShowPhonePrompt] = useState(false);
     const [customerPhone, setCustomerPhone] = useState("");
     const [showActionModal, setShowActionModal] = useState(false);
@@ -35,6 +57,10 @@ const Orders = () => {
     const [paymentMethod, setPaymentMethod] = useState('');
     const [cashAmount, setCashAmount] = useState('');
     const [momoAmount, setMomoAmount] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isWhatsAppSent, setIsWhatsAppSent] = useState(false);
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [showPhonePromptModal, setShowPhonePromptModal] = useState(false);
 
     useEffect(() => {
         const savedPreviewItems = localStorage.getItem("previewItems");
@@ -56,7 +82,7 @@ const Orders = () => {
         const generateInvoiceNumber = async () => {
             try {
                 setLoading(true);
-                const response = await axios.post(`${baseURL}/invoice/number`);
+                const response = await axios.post('https://temiperi-stocks-backend.onrender.com/temiperi//invoice/number');
                 const { invoiceNumber } = response.data;
                 if (!invoiceNumber || typeof invoiceNumber !== "string" || !invoiceNumber.startsWith("tm")) {
                     throw new Error("Invalid invoice number format");
@@ -89,7 +115,7 @@ const Orders = () => {
       };
 
     const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
+    setSearch(e.target.value);
     };
 
     const handleAddItem = () => {
@@ -120,12 +146,21 @@ const Orders = () => {
         });
       };
 
-    const getFilteredProducts = () => {
-        if (!searchQuery) return products; // Return all products if searchQuery is empty
-        return products.filter((product) =>
-          product?.name?.toLowerCase().startsWith(searchQuery.toLowerCase())
+    const filteredProducts = useMemo(() => {
+        if (!searchQuery) return products;
+        return products.filter(product =>
+            product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            product.category.toLowerCase().includes(searchQuery.toLowerCase())
         );
-      };
+    }, [products, searchQuery]);
+
+    const getFilteredProducts = (query) => {
+        if (!query) return filteredProducts;
+        return filteredProducts.filter((product) =>
+            product.name.toLowerCase().startsWith(query.toLowerCase())
+        );
+    };
+
     const handleItemChange = (index, field, value) => {
         const items = [...data.items];
         if (field === "quantity" && value <= 0) return;
@@ -161,131 +196,124 @@ const Orders = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-          // Check if there are any items to submit
-          if (previewItems.length === 0) {
-            const currentItem = data.items[0];
-    
-            // If no items in preview and current item is empty, show error
-            if (!currentItem.description || currentItem.quantity <= 0) {
-              toast.error("Please add at least one item before submitting.");
-              return;
-            }
-    
-            // If current item has data, add it first
-            if (currentItem.description && currentItem.quantity > 0) {
-              const selectedProduct = products.find(
-                (product) => product.name === currentItem.description
-              );
-              if (
-                selectedProduct &&
-                selectedProduct.quantity < currentItem.quantity
-              ) {
-                toast.error("Not enough stock available for this product.");
-                return;
-              }
-              // Add current item to preview items
-              setPreviewItems([...previewItems, { ...currentItem }]);
-            }
-          }
-    
-          // Get final list of items
-          const finalItems = [...previewItems];
-          if (data.items[0].description && data.items[0].quantity > 0) {
-            finalItems.push({ ...data.items[0] });
-          }
-    
-          // Calculate total amount
-          const totalAmount = finalItems.reduce((sum, item) => {
-            return sum + item.quantity * item.price;
-          }, 0);
-    
-          // Prepare the invoice data
-          const invoiceData = {
-            invoiceNumber: data.invoiceNumber,
-            customerName: data.customerName,
-            paymentMethod: paymentMethod,
-            items: finalItems.map((item) => ({
-              description: item.description,
-              quantity: item.quantity,
-              price: item.price,
-            })),
-            totalAmount,
-          };
-    
-          //order payload
-          const orderPayload = {
-            invoiceNumber: data.invoiceNumber,
-            customerName: data.customerName,
-            paymentMethod: paymentMethod,
-            items: finalItems.map((item) => ({
-              description: item.description,
-              quantity: item.quantity,
-              price: item.price,
-            })),
-          };
-    
-          // Submit the invoice
-          await axios.post('https://temiperi-stocks-backend.onrender.com/temiperi/invoice', invoiceData, {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-    
-          //submit the order
-          const orderResponse = await axios.post('https://temiperi-stocks-backend.onrender.com/temiperi/order', orderPayload, {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
+            // Check if there are any items to submit
+            if (previewItems.length === 0) {
+                const currentItem = data.items[0];
 
-          // Reload the page after successful submission
-          window.location.reload();
+                // If no items in preview and current item is empty, show error
+                if (!currentItem.description || currentItem.quantity <= 0) {
+                    toast.error("Please add at least one item before submitting.");
+                    return;
+                }
 
-          if (orderResponse.status === 201) {
-            toast.success("Order submitted successfully!", {
-              position: "top-right",
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
+                // If current item has data, add it first
+                if (currentItem.description && currentItem.quantity > 0) {
+                    const selectedProduct = products.find(
+                        (product) => product.name === currentItem.description
+                    );
+                    if (
+                        selectedProduct &&
+                        selectedProduct.quantity < currentItem.quantity
+                    ) {
+                        toast.error("Not enough stock available for this product.");
+                        return;
+                    }
+                    // Add current item to preview items only if it's not already there
+                    setPreviewItems([...previewItems, { ...currentItem }]);
+                }
+            }
+
+            // Use only the preview items for final submission
+            const finalItems = [...previewItems];
+
+            // Calculate total amount
+            const totalAmount = finalItems.reduce((sum, item) => {
+                return sum + item.quantity * item.price;
+            }, 0);
+
+            // Prepare the invoice data
+            const invoiceData = {
+                invoiceNumber: data.invoiceNumber,
+                customerName: data.customerName,
+                paymentMethod: paymentMethod,
+                items: finalItems.map((item) => ({
+                    description: item.description,
+                    quantity: item.quantity,
+                    price: item.price,
+                })),
+                totalAmount,
+            };
+
+            //order payload
+            const orderPayload = {
+                invoiceNumber: data.invoiceNumber,
+                customerName: data.customerName,
+                paymentMethod: paymentMethod,
+                items: finalItems.map((item) => ({
+                    description: item.description,
+                    quantity: item.quantity,
+                    price: item.price,
+                })),
+            };
+
+            // Submit the invoice
+            await axios.post('https://temiperi-stocks-backend.onrender.com/temiperi/invoice', invoiceData, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
             });
-    
-            //update the products to undertake the deduction
-            for (const item of finalItems) {
-              const selectedProduct = products.find(
-                (product) => product.name === item.description
-              );
-    
-              if (selectedProduct) {
-                await axios.post(`${baseURL}/product-update`, {
-                  productId: selectedProduct._id,
-                  quantityToDeduct: item.quantity,
+
+            //submit the order
+            const orderResponse = await axios.post('https://temiperi-stocks-backend.onrender.com/temiperi/order', orderPayload, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            setIsModalOpen(true);
+
+            if (orderResponse.status === 201) {
+                toast.success("Order submitted successfully!", {
+                    position: "top-right",
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
                 });
-              }
+
+                //update the products to undertake the deduction
+                for (const item of finalItems) {
+                    const selectedProduct = products.find(
+                        (product) => product.name === item.description
+                    );
+
+                    if (selectedProduct) {
+                        await axios.post(`${baseURL}/product-update`, {
+                            productId: selectedProduct._id,
+                            quantityToDeduct: item.quantity,
+                        });
+                    }
+                }
             }
-    
-            // Show modal instead of resetting form
-            setShowActionModal(true);
-          }
         } catch (error) {
-          console.error("Error submitting invoice:", error);
-          toast.error(
-            error.response?.data?.error ||
-              "Failed to submit invoice. Please try again.",
-            {
-              position: "top-right",
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-            }
-          );
+            console.error("Error submitting invoice:", error);
+            toast.error(
+                error.response?.data?.error ||
+                    "Failed to submit invoice. Please try again.",
+                {
+                    position: "top-right",
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                }
+            );
         }
-      };
+    };
 
     const handlePaymentMethodChange = (e) => {
         setPaymentMethod(e.target.value);
@@ -317,7 +345,7 @@ const Orders = () => {
             console.error("Error generating PDF:", error);
             return null;
         }
-      };
+    };
 
     const handlePrintInvoice = () => {
         const printContent = document.getElementById("invoice-content");
@@ -456,6 +484,52 @@ const Orders = () => {
         // Open WhatsApp in new window
         window.open(whatsappUrl, "_blank");
         setShowPhonePrompt(false);
+        setIsWhatsAppSent(true);
+    };
+
+    const handleSendWhatsAppModal = () => {
+        setShowPhonePromptModal(true);
+    };
+
+    const handleShareWhatsAppModal = async (phoneNumber) => {
+        try {
+            const message = 
+              `*TEMIPERI ENTERPRISE*\n\n` +
+              `*Invoice #:* ${data.invoiceNumber}\n` +
+              `*Customer:* ${data.customerName}\n`  +
+              `*Order Details:*\n` +
+              `${data.items.map((item, index) => 
+                `${index + 1}. ${item.description} - Qty: ${item.quantity}, Price: GH₵${item.price.toFixed(2)}`
+              ).join("\n")}\n\n` +
+              `Total Amount: GH₵${totalAmount.toFixed(2)}\n\n` +
+              `Thank you for your business!`;
+            const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, "_blank");
+            setShowPhonePromptModal(false);
+            setIsModalOpen(false);
+            window.location.reload();
+        } catch (error) {
+            console.error('Error sending WhatsApp message:', error);
+            toast.error("Error sending WhatsApp message");
+        }
+    };
+
+    const handlePrintModal = async () => {
+        try {
+            await handlePrintInvoice();
+            // Wait for the print dialog to complete
+            setTimeout(() => {
+                setIsModalOpen(false);
+                window.location.reload();
+            }, 1000);
+        } catch (error) {
+            console.error('Error printing invoice:', error);
+        }
+    };
+
+    const handleCancelModal = () => {
+        setIsModalOpen(false);
+        window.location.reload();
     };
 
     return(
@@ -527,7 +601,7 @@ const Orders = () => {
                         <div className="flex items-center gap-4 flex-1 w-full">
                             <input
                             type="text"
-                            value={searchQuery}
+                            value={search}
                             onChange={handleSearchChange}
                             placeholder="Search products..."
                             className='border p-2 rounded-md border-black outline-none w-full'
@@ -541,7 +615,7 @@ const Orders = () => {
                             required
                             >
                             <option value="">Select a product</option>
-                            {getFilteredProducts().map((product, idx) => (
+                            {getFilteredProducts(search).map((product, idx) => (
                                 <option key={idx} value={product.name}>
                                 {product.name}
                                 </option>
@@ -633,6 +707,43 @@ const Orders = () => {
                                     className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
                                 >
                                     Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                <Modal isOpen={isModalOpen} onRequestClose={() => setIsModalOpen(false)} style={modalStyle}>
+                    <h2 className="text-2xl font-semibold mb-4">Order Submitted</h2>
+                    <div className="flex gap-4 items-center">
+                        <button onClick={handleSendWhatsAppModal} className='bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded'>Send via WhatsApp</button>
+                        <button onClick={handlePrintModal} className='bg-blue hover:bg-green-600 text-white px-4 py-2 rounded'>Print</button>
+                        <button onClick={handleCancelModal} className='bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded'>Cancel</button>
+                    </div>
+                </Modal>
+
+                {/* Add phone prompt modal */}
+                {showPhonePromptModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-lg shadow-lg">
+                            <h3 className="text-lg font-semibold mb-4">Enter Phone Number</h3>
+                            <PhoneInput
+                                country={'gh'}
+                                value={phoneNumber}
+                                onChange={(phone) => setPhoneNumber(phone)}
+                                className="mb-4"
+                            />
+                            <div className="flex justify-end gap-2">
+                                <button
+                                    onClick={() => setShowPhonePromptModal(false)}
+                                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => handleShareWhatsAppModal(phoneNumber)}
+                                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                                >
+                                    Send
                                 </button>
                             </div>
                         </div>

@@ -7,7 +7,7 @@ const devUrl = "http://localhost:4000/temiperi/invoices";
 const prodUrl = "https://temiperi-stocks-backend.onrender.com/temiperi/invoices";
 const baseUrl = window.location.hostname === "localhost" ? devUrl : prodUrl;
 
-const Invoices = () => {
+const Invoices = ({ searchQuery }) => {
     const [invoices, setInvoices] = useState([]);
     const [filteredInvoices, setFilteredInvoices] = useState([]);
     const [activeFilter, setActiveFilter] = useState('all');
@@ -27,7 +27,6 @@ const Invoices = () => {
                         new Date(b.createdAt) - new Date(a.createdAt)
                     );
                     setInvoices(sortedInvoices);
-                    setFilteredInvoices(sortedInvoices);
                     
                     // Calculate initial total
                     const total = sortedInvoices.reduce((sum, invoice) => sum + invoice.totalAmount, 0);
@@ -41,45 +40,46 @@ const Invoices = () => {
         fetchInvoices();
     }, []);
 
-    const filterInvoices = (filter) => {
-        setActiveFilter(filter);
+    // Handle both time filter and search
+    useEffect(() => {
+        let filtered = invoices;
+        
+        // Apply time filter
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
-        const weekStart = new Date(today);
-        weekStart.setDate(weekStart.getDate() - 7);
+        const thisWeekStart = new Date(today);
+        thisWeekStart.setDate(thisWeekStart.getDate() - today.getDay());
 
-        let filtered;
-        switch (filter) {
+        switch (activeFilter) {
             case 'today':
-                filtered = invoices.filter(invoice => {
-                    const invoiceDate = new Date(invoice.createdAt);
-                    return invoiceDate >= today;
-                });
+                filtered = filtered.filter(invoice => new Date(invoice.createdAt) >= today);
                 break;
             case 'yesterday':
-                filtered = invoices.filter(invoice => {
-                    const invoiceDate = new Date(invoice.createdAt);
-                    return invoiceDate >= yesterday && invoiceDate < today;
+                filtered = filtered.filter(invoice => {
+                    const date = new Date(invoice.createdAt);
+                    return date >= yesterday && date < today;
                 });
                 break;
             case 'thisWeek':
-                filtered = invoices.filter(invoice => {
-                    const invoiceDate = new Date(invoice.createdAt);
-                    return invoiceDate >= weekStart;
-                });
+                filtered = filtered.filter(invoice => new Date(invoice.createdAt) >= thisWeekStart);
                 break;
             case 'past':
-                filtered = invoices.filter(invoice => {
-                    const invoiceDate = new Date(invoice.createdAt);
-                    return invoiceDate < weekStart;
-                });
+                filtered = filtered.filter(invoice => new Date(invoice.createdAt) < thisWeekStart);
                 break;
             default:
-                filtered = invoices;
+                break;
         }
-        
+
+        // Apply search filter
+        if (searchQuery) {
+            filtered = filtered.filter(invoice =>
+                invoice.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                invoice.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+
         // Always sort by date, newest first
         const sortedFiltered = filtered.sort((a, b) => 
             new Date(b.createdAt) - new Date(a.createdAt)
@@ -88,7 +88,7 @@ const Invoices = () => {
 
         const total = sortedFiltered.reduce((sum, invoice) => sum + invoice.totalAmount, 0);
         setCurrentTotal(total);
-    };
+    }, [activeFilter, searchQuery, invoices]);
 
     const handleWhatsAppShare = (invoice) => {
         setSelectedInvoice(invoice);
@@ -355,7 +355,7 @@ const Invoices = () => {
                 {['all', 'today', 'yesterday', 'thisWeek', 'past'].map((filter) => (
                     <button
                         key={filter}
-                        onClick={() => filterInvoices(filter)}
+                        onClick={() => setActiveFilter(filter)}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
                             ${activeFilter === filter 
                                 ? 'bg-blue text-white' 

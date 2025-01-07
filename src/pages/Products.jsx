@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import PaginatedTable from "../components/PaginatedTable";
 
-const Products = () => {
+const Products = ({ searchQuery }) => {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [products, setProducts] = useState([]);
@@ -14,11 +14,9 @@ const Products = () => {
         "https://temiperi-stocks-backend.onrender.com/temiperi/products"
       );
       const data = response.data.products || [];
-
       setProducts(data);
       setFilteredProducts(data);
-
-      const uniqueCategories = [...new Set(data.map((item) => item.category))];
+      const uniqueCategories = [...new Set(data.map((item) => item?.category || '').filter(Boolean))];
       setCategories(uniqueCategories);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -29,14 +27,26 @@ const Products = () => {
     fetchProducts();
   }, []);
 
+  useEffect(() => {
+    // Filter products based on both category and search query
+    let filtered = [...products];
+    
+    if (selectedCategory) {
+      filtered = filtered.filter((product) => product?.category === selectedCategory);
+    }
+    
+    if (searchQuery) {
+      filtered = filtered.filter((product) =>
+        (product?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (product?.category || '').toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    setFilteredProducts(filtered);
+  }, [selectedCategory, searchQuery, products]);
+
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
-    if (category) {
-      const filtered = products.filter((product) => product.category === category);
-      setFilteredProducts(filtered);
-    } else {
-      setFilteredProducts(products);
-    }
   };
 
   return (

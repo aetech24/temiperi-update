@@ -9,6 +9,7 @@ import { HiMenuAlt2 } from 'react-icons/hi';
 
 const App = () => {
     const [isSideNavOpen, setIsSideNavOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     return (
         <div className='flex h-screen relative'>
@@ -39,15 +40,15 @@ const App = () => {
             <div className='flex-1 flex flex-col min-h-screen'>
                 {/* Header */}
                 <div className='sticky top-0 z-20 lg:relative'>
-                    <Header />
+                    <Header searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
                 </div>
 
                 {/* Scrollable Content */}
                 <div className='flex-1 max-md:w-screen overflow-y-auto px-4 lg:px-6 pt-8 md:pt-16 lg:pt-0 pb-6'>
                     <Routes>
-                        <Route path='/*' element={<Products />} />
-                        <Route path='/submit-order' element={<Orders />} />
-                        <Route path='/invoices' element={<Invoices />} />
+                        <Route path='/*' element={<Products searchQuery={searchQuery} />} />
+                        <Route path='/submit-order' element={<Orders searchQuery={searchQuery} />} />
+                        <Route path='/invoices' element={<Invoices searchQuery={searchQuery} />} />
                     </Routes>
                 </div>
             </div>
