@@ -1,8 +1,16 @@
 import React, { useState } from 'react';
 import { BsWhatsapp } from "react-icons/bs";
-import { MdOutlinePrint } from "react-icons/md";
+import { MdOutlinePrint, MdEdit, MdDelete } from "react-icons/md";
 
-const InvoiceTable = ({ invoices, handlePrint, handleWhatsAppShare }) => {
+const InvoiceTable = ({ 
+    invoices, 
+    handlePrint, 
+    handleWhatsAppShare, 
+    handleDelete, 
+    handleEdit,
+    isEditing,
+    setIsEditing 
+}) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(7);
 
@@ -96,6 +104,20 @@ const InvoiceTable = ({ invoices, handlePrint, handleWhatsAppShare }) => {
                                         <BsWhatsapp className="w-4 h-4" />
                                         <span>Share</span>
                                     </button>
+                                    <button
+                                        onClick={() => handleEdit(invoice)}
+                                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded inline-flex items-center space-x-1"
+                                    >
+                                        <MdEdit className="w-4 h-4" />
+                                        <span>Edit</span>
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(invoice._id)}
+                                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded inline-flex items-center space-x-1"
+                                    >
+                                        <MdDelete className="w-4 h-4" />
+                                        <span>Delete</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -159,6 +181,20 @@ const InvoiceTable = ({ invoices, handlePrint, handleWhatsAppShare }) => {
                                     >
                                         <BsWhatsapp className="w-4 h-4" />
                                         <span>Share</span>
+                                    </button>
+                                    <button
+                                        onClick={() => handleEdit(invoice)}
+                                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded inline-flex items-center space-x-1"
+                                    >
+                                        <MdEdit className="w-4 h-4" />
+                                        <span>Edit</span>
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(invoice._id)}
+                                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded inline-flex items-center space-x-1"
+                                    >
+                                        <MdDelete className="w-4 h-4" />
+                                        <span>Delete</span>
                                     </button>
                                 </td>
                             </tr>
