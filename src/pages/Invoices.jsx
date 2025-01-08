@@ -134,8 +134,14 @@ const Invoices = ({ searchQuery }) => {
     printContent.innerHTML = `
             <div class="mt-8 p-8 border-t-2 border-gray-200 bg-gray-100 rounded-lg shadow-sm">
                 <!-- Header -->
-                <div class="flex justify-between items-center mb-8 pb-5 border-b-2 border-gray-200">
-                    <img src="/src/assets/temiperi-logo.jpg" alt="Company Logo" class="w-24" />
+                <div class="flex justify-between items-start mb-8 pb-5 border-b-2 border-gray-200">
+                    <div class="flex items-center">
+                        <img src="/src/assets/temiperi-logo.jpg" alt="Company Logo" style="width: 100px; height: auto;" />
+                        <div class="ml-4">
+                            <h2 class="text-xl font-bold text-gray-800">TEMIPERI ENTERPRISE</h2>
+                            <p class="text-sm text-gray-600">Quality Products, Excellent Service</p>
+                        </div>
+                    </div>
                     <div class="text-right text-gray-600 text-sm">
                         <p>Date: ${formattedDate}</p>
                         <p>Time: ${formattedTime}</p>
@@ -242,20 +248,26 @@ const Invoices = ({ searchQuery }) => {
                             }
                             @page {
                                 size: A4;
-                                margin: 1cm;
+                                margin: 0.5cm;
+                                padding: 0;
                             }
-                            body {
+                            html, body {
+                                margin: 0;
+                                padding: 0;
                                 font-family: Arial, sans-serif;
                                 line-height: 1.6;
                                 color: #000 !important;
                                 background-color: #fff !important;
+                                -webkit-print-color-adjust: exact;
                             }
                             .bg-gray-800 {
                                 background-color: #1f2937 !important;
                                 color: white !important;
+                                -webkit-print-color-adjust: exact;
                             }
                             .bg-gray-100 {
                                 background-color: #f3f4f6 !important;
+                                -webkit-print-color-adjust: exact;
                             }
                             .bg-white {
                                 background-color: #ffffff !important;
@@ -272,9 +284,10 @@ const Invoices = ({ searchQuery }) => {
                             thead.bg-gray-800 th {
                                 background-color: #1f2937 !important;
                                 color: #ffffff !important;
+                                -webkit-print-color-adjust: exact;
                             }
                             .shadow-md {
-                                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+                                box-shadow: none !important;
                             }
                             .border-gray-200 {
                                 border-color: #e5e7eb !important;
@@ -283,9 +296,14 @@ const Invoices = ({ searchQuery }) => {
                                 width: 100%;
                                 border-collapse: collapse;
                                 background-color: #ffffff !important;
+                                page-break-inside: auto;
+                            }
+                            tr {
+                                page-break-inside: avoid;
+                                page-break-after: auto;
                             }
                             th, td {
-                                padding: 1rem;
+                                padding: 0.75rem;
                                 text-align: left;
                                 border-bottom: 1px solid #e5e7eb !important;
                             }
@@ -296,26 +314,35 @@ const Invoices = ({ searchQuery }) => {
                             }
                             tfoot {
                                 background-color: #f3f4f6 !important;
+                                -webkit-print-color-adjust: exact;
                             }
                             .rounded-lg {
-                                border-radius: 0.5rem;
-                                overflow: hidden;
+                                border-radius: 0;
                             }
                             /* Hide non-printable elements */
                             .no-print {
                                 display: none !important;
                             }
+                            /* Ensure content starts at the top of the page */
+                            #print-content {
+                                margin-top: 0;
+                                padding-top: 0;
+                            }
                         }
                     </style>
                 </head>
                 <body>
-                    ${printContent.innerHTML}
+                    <div id="print-content">
+                        ${printContent.innerHTML}
+                    </div>
                     <script>
                         window.onload = function() {
                             document.querySelectorAll('thead.bg-gray-800').forEach(header => {
                                 header.style.backgroundColor = '#1f2937';
                                 header.style.color = '#ffffff';
                             });
+                            // Force immediate print to avoid blank page
+                            window.print();
                         }
                     </script>
                 </body>
