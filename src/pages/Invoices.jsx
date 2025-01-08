@@ -247,9 +247,8 @@ const Invoices = ({ searchQuery }) => {
                                 print-color-adjust: exact !important;
                             }
                             @page {
-                                size: A4;
-                                margin: 0.5cm;
-                                padding: 0;
+                                size: auto;  
+                                margin: 0.5cm 1cm;  
                             }
                             html, body {
                                 margin: 0;
@@ -259,81 +258,93 @@ const Invoices = ({ searchQuery }) => {
                                 color: #000 !important;
                                 background-color: #fff !important;
                                 -webkit-print-color-adjust: exact;
+                                height: auto !important;  
+                                min-height: 100%;
                             }
-                            .bg-gray-800 {
-                                background-color: #1f2937 !important;
-                                color: white !important;
-                                -webkit-print-color-adjust: exact;
+                            #print-content {
+                                margin: 0 auto;
+                                max-width: 210mm;  
+                                width: 100%;
+                                padding: 0;
+                                box-sizing: border-box;
                             }
-                            .bg-gray-100 {
-                                background-color: #f3f4f6 !important;
-                                -webkit-print-color-adjust: exact;
-                            }
-                            .bg-white {
-                                background-color: #ffffff !important;
-                            }
-                            .text-white {
-                                color: #ffffff !important;
-                            }
-                            .text-gray-600 {
-                                color: #4b5563 !important;
-                            }
-                            .text-gray-800 {
-                                color: #1f2937 !important;
-                            }
-                            thead.bg-gray-800 th {
-                                background-color: #1f2937 !important;
-                                color: #ffffff !important;
-                                -webkit-print-color-adjust: exact;
-                            }
-                            .shadow-md {
-                                box-shadow: none !important;
-                            }
-                            .border-gray-200 {
-                                border-color: #e5e7eb !important;
+                            .invoice-container {
+                                width: 100%;
+                                margin: 0 auto;
+                                padding: 1cm 0;
+                                box-sizing: border-box;
                             }
                             table {
                                 width: 100%;
                                 border-collapse: collapse;
                                 background-color: #ffffff !important;
                                 page-break-inside: auto;
+                                margin-bottom: 1cm;  
                             }
                             tr {
                                 page-break-inside: avoid;
                                 page-break-after: auto;
                             }
-                            th, td {
-                                padding: 0.75rem;
-                                text-align: left;
-                                border-bottom: 1px solid #e5e7eb !important;
-                            }
-                            th {
-                                font-weight: bold;
-                                text-transform: uppercase;
-                                font-size: 0.875rem;
+                            thead {
+                                display: table-header-group;  
                             }
                             tfoot {
-                                background-color: #f3f4f6 !important;
-                                -webkit-print-color-adjust: exact;
+                                display: table-footer-group;  
                             }
-                            .rounded-lg {
-                                border-radius: 0;
+                            /* Ensure content fills the page width appropriately */
+                            .flex {
+                                display: block !important;  
+                            }
+                            .flex.justify-between {
+                                display: flex !important;  
+                            }
+                            /* Adjust spacing for longer formats */
+                            .mt-8 {
+                                margin-top: 1cm !important;
+                            }
+                            .mb-8 {
+                                margin-bottom: 1cm !important;
+                            }
+                            .p-8 {
+                                padding: 1cm !important;
+                            }
+                            /* Ensure proper scaling of the logo */
+                            img {
+                                max-width: 120px;
+                                height: auto !important;
+                            }
+                            /* Better spacing for data cells */
+                            th, td {
+                                padding: 0.5cm 0.3cm;
+                                text-align: left;
+                                border-bottom: 1px solid #e5e7eb !important;
+                                font-size: 11pt;  
+                            }
+                            /* Improve header visibility */
+                            thead.bg-gray-800 th {
+                                background-color: #1f2937 !important;
+                                color: #ffffff !important;
+                                -webkit-print-color-adjust: exact;
+                                font-size: 11pt;
+                                font-weight: 600;
+                            }
+                            /* Footer styling */
+                            .invoice-footer {
+                                margin-top: 2cm;
+                                page-break-inside: avoid;
                             }
                             /* Hide non-printable elements */
                             .no-print {
                                 display: none !important;
-                            }
-                            /* Ensure content starts at the top of the page */
-                            #print-content {
-                                margin-top: 0;
-                                padding-top: 0;
                             }
                         }
                     </style>
                 </head>
                 <body>
                     <div id="print-content">
-                        ${printContent.innerHTML}
+                        <div class="invoice-container">
+                            ${printContent.innerHTML}
+                        </div>
                     </div>
                     <script>
                         window.onload = function() {
