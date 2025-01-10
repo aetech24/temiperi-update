@@ -1,7 +1,7 @@
 import React from 'react';
 import Logo from "../assets/temiperi-logo.jpg"
 
-const PrintablePreview = ({ data, previewItems }) => {
+const PrintablePreview = ({ data, previewItems, isContinuation = false }) => {
     const now = new Date();
     const formattedDate = now.toLocaleDateString("en-US", {
         year: "numeric",
@@ -95,14 +95,15 @@ const PrintablePreview = ({ data, previewItems }) => {
             </style>
             <div className="mt-8 p-8 border-t-2 border-gray-200 bg-gray-100 rounded-lg shadow-sm" id="invoice-content">
             {/* Header */}
-            <div className="flex justify-between items-center mb-8 pb-5 border-b-2 border-gray-200">
-                <img src={Logo} alt="Company Logo" className="w-24" />
-                <div className="text-right text-gray-600 text-sm">
-                    <p>Date: {formattedDate}</p>
-                    <p>Time: {formattedTime}</p>
+            {!isContinuation && (
+                <div className="flex justify-between items-center mb-8 pb-5 border-b-2 border-gray-200">
+                    <img src={Logo} alt="Company Logo" className="w-24" />
+                    <div className="text-right text-gray-600 text-sm">
+                        <p>Date: {formattedDate}</p>
+                        <p>Time: {formattedTime}</p>
+                    </div>
                 </div>
-            </div>
-
+            )}
             {/* Customer Info */}
             <div className="flex justify-between mb-8 p-4 bg-white rounded-md">
                 <div>

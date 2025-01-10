@@ -134,7 +134,7 @@ const Invoices = ({ searchQuery }) => {
     printContent.innerHTML = `
             <div class="mt-8 p-8 border-t-2 border-gray-200 bg-gray-100 rounded-lg shadow-sm">
                 <!-- Header -->
-                <div class="flex justify-between items-start mb-8 pb-5 border-b-2 border-gray-200">
+                <div class="invoice-header flex justify-between items-start mb-8 pb-5 border-b-2 border-gray-200">
                     <div class="flex items-center">
                         <img src="/src/assets/temiperi-logo.jpg" alt="Company Logo" style="width: 100px; height: auto;" />
                         <div class="ml-4">
@@ -250,6 +250,9 @@ const Invoices = ({ searchQuery }) => {
                                 size: auto;  
                                 margin: 0.5cm 1cm;  
                             }
+                            @page :first {
+                                margin-top: 0.5cm;
+                            }
                             html, body {
                                 margin: 0;
                                 padding: 0;
@@ -290,6 +293,13 @@ const Invoices = ({ searchQuery }) => {
                             }
                             tfoot {
                                 display: table-footer-group;  
+                            }
+                            /* Only show header on first page */
+                            .invoice-header {
+                                display: none;
+                            }
+                            .invoice-header:first-of-type {
+                                display: flex;
                             }
                             /* Ensure content fills the page width appropriately */
                             .flex {
