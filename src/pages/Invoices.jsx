@@ -157,15 +157,23 @@ const Invoices = ({ searchQuery }) => {
                         <h4 class="text-gray-800 font-semibold">Customer: ${
                           invoice.customerName
                         }</h4>
-                        <h4 class="text-gray-800 font-semibold">Payment Method: ${
-                          invoice.paymentMethod === "momo"
-                            ? "Mobile Money"
-                            : invoice.paymentMethod === "credit"
-                            ? "Credit"
-                            : invoice.paymentMethod === "cash"
-                            ? "Cash"
-                            : "N/A"
-                        }</h4>
+                        <h4 class="text-gray-800 font-semibold">
+                      Payment Method: {
+                        (() => {
+                          switch (invoice?.paymentMethod) {
+                            case "cash":
+                              return "Cash";
+                            case "credit":
+                              return "Credit";
+                            case "momo":
+                              return "Mobile Money";
+                            default:
+                              return "Unknown";
+                          }
+                        })()
+                      }
+                    </h4>
+
                     </div>
                 </div>
 

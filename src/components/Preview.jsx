@@ -34,7 +34,7 @@ const Preview = ({ data, previewItems }) => {
                 <div>
                     <h4 className="text-gray-800 font-semibold">Invoice #: {data.invoiceNumber || 'Not Generated'}</h4>
                     <h4 className="text-gray-800 font-semibold">Customer: {data.customerName || 'Not Specified'}</h4>
-                    <h4 className="text-gray-800 font-semibold">Payment Method: {data.paymentMethod || 'Not Selected'}</h4>
+                    <h4 className="text-gray-800 font-semibold">Payment Method: {data?.paymentMethod || 'Not Specified'}</h4>
                 </div>
             </div>
 
