@@ -34,7 +34,7 @@ const Invoices = ({ searchQuery }) => {
 
           // Calculate initial total
           const total = sortedInvoices.reduce(
-            (sum, invoice) => sum + invoice.totalAmount,
+            (sum, invoice) => sum + invoice?.totalAmount,
             0
           );
           setCurrentTotal(total);
@@ -219,7 +219,7 @@ const Invoices = ({ searchQuery }) => {
                             </td>
                             <td class="p-4">
                                 <span class="text-gray-600 mr-1">GH₵</span>
-                                ${invoice.totalAmount.toFixed(2)}
+                                ${invoice?.totalAmount?.toFixed(2)}
                             </td>
                         </tr>
                     </tfoot>

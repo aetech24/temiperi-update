@@ -247,7 +247,7 @@ const Orders = ({ searchQuery }) => {
         invoiceNumber: data.invoiceNumber,
         customerName: data.customerName,
         paymentMethod: paymentMethod,
-        items: finalItems.map((item) => ({
+        items: data.items.map((item) => ({
           description: item.description,
           quantity: item.quantity,
           price: item.price,
@@ -260,7 +260,7 @@ const Orders = ({ searchQuery }) => {
         invoiceNumber: data.invoiceNumber,
         customerName: data.customerName,
         paymentMethod: paymentMethod,
-        items: finalItems.map((item) => ({
+        items: data.items.map((item) => ({
           description: item.description,
           quantity: item.quantity,
           price: item.price,
@@ -289,6 +289,8 @@ const Orders = ({ searchQuery }) => {
         }
       );
 
+      console.log(data);
+
       setIsModalOpen(true);
 
       if (orderResponse.status === 201) {
@@ -301,6 +303,8 @@ const Orders = ({ searchQuery }) => {
           draggable: true,
           progress: undefined,
         });
+
+        console.log(finalItems);
 
         //update the products to undertake the deduction
         for (const item of finalItems) {

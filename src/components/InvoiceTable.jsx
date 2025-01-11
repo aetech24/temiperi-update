@@ -155,6 +155,12 @@ const InvoiceTable = ({
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
               >
+                Items & Prices
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+              >
                 Total Amount
               </th>
               <th
@@ -179,6 +185,19 @@ const InvoiceTable = ({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {invoice.customerName}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-900">
+                  <div className="space-y-1">
+                    {invoice.items &&
+                      invoice.items.map((item, idx) => (
+                        <div key={idx} className="flex justify-between">
+                          <span>{item.description}</span>
+                          <span className="ml-4">
+                            GH₵{item.price.toFixed(2)} × {item.quantity}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   GH₵{invoice.totalAmount.toFixed(2)}
