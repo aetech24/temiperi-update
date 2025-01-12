@@ -208,7 +208,7 @@ const Orders = ({ searchQuery }) => {
     e.preventDefault();
     try {
       // Check if there are any items to submit
-      if (previewItems.length === 0) {
+      if (data.items.length === 0) {
         const currentItem = data.items[0];
 
         // If no items in preview and current item is empty, show error
@@ -235,37 +235,44 @@ const Orders = ({ searchQuery }) => {
       }
 
       // Use only the preview items for final submission
-      const finalItems = [...previewItems];
+      // Combine preview items and current item if it exists
+      let allItems = [...previewItems];
+      if (data.items[0].description && data.items[0].quantity > 0) {
+        allItems.push({ ...data.items[0] });
+      }
 
-      // Calculate total amount
-      const totalAmount = finalItems.reduce((sum, item) => {
+      // Calculate total amount using all items
+      const totalAmount = allItems.reduce((sum, item) => {
         return sum + item.quantity * item.price;
       }, 0);
 
-      // Prepare the invoice data
+      // Prepare the invoice data using all items
       const invoiceData = {
         invoiceNumber: data.invoiceNumber,
         customerName: data.customerName,
         paymentMethod: paymentMethod,
-        items: data.items.map((item) => ({
-          description: item.description,
-          quantity: item.quantity,
-          price: item.price,
-        })),
+        items: allItems,
         totalAmount,
       };
 
-      //order payload
+      // Order payload should use the same items
       const orderPayload = {
         invoiceNumber: data.invoiceNumber,
         customerName: data.customerName,
         paymentMethod: paymentMethod,
-        items: data.items.map((item) => ({
-          description: item.description,
-          quantity: item.quantity,
-          price: item.price,
-        })),
+        items: allItems,
       };
+      //order payload
+      // const orderPayload = {
+      //   invoiceNumber: data.invoiceNumber,
+      //   customerName: data.customerName,
+      //   paymentMethod: paymentMethod,
+      //   items: data.items.map((item) => ({
+      //     description: item.description,
+      //     quantity: item.quantity,
+      //     price: item.price,
+      //   })),
+      // };
 
       // Submit the invoice
       await axios.post(
