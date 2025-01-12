@@ -134,7 +134,7 @@ const Invoices = ({ searchQuery }) => {
     printContent.innerHTML = `
             <div class="mt-8 p-8 border-t-2 border-gray-200 bg-gray-100 rounded-lg shadow-sm">
                 <!-- Header -->
-                <div class="invoice-header flex justify-between items-start mb-8 pb-5 border-b-2 border-gray-200">
+                <div class="invoice-header flex justify-between items-center gap-5 mb-8 pb-5 border-b-2 border-gray-200">
                     <div class="flex items-center">
                         <img src="/src/assets/temiperi-logo.jpg" alt="Company Logo" style="width: 100px; height: auto;" />
                         <div class="ml-4">
@@ -158,21 +158,8 @@ const Invoices = ({ searchQuery }) => {
                           invoice.customerName
                         }</h4>
                         <h4 class="text-gray-800 font-semibold">
-                      Payment Method: {
-                        (() => {
-                          switch (invoice?.paymentMethod) {
-                            case "cash":
-                              return "Cash";
-                            case "credit":
-                              return "Credit";
-                            case "momo":
-                              return "Mobile Money";
-                            default:
-                              return "Unknown";
-                          }
-                        })()
-                      }
-                    </h4>
+                      Payment Method: ${invoice?.paymentMethod}
+                        </h4>
 
                     </div>
                 </div>
