@@ -44,7 +44,9 @@ const Orders = ({ searchQuery }) => {
     invoiceNumber: "",
     customerName: "",
     paymentMethod: "",
-    items: [{ description: "", quantity: 0, price: 0 }],
+    items: [
+      { description: "", quantity: 0, price: 0, productId: "", total: 0 },
+    ],
   });
   const [loading, setLoading] = useState(false);
   const [latestInvoiceNumber, setLatestInvoiceNumber] = useState(0);
@@ -147,12 +149,23 @@ const Orders = ({ searchQuery }) => {
     }
 
     // Add item to preview
-    setPreviewItems([...previewItems, { ...currentItem }]);
+    setPreviewItems([
+      ...previewItems,
+      { ...currentItem, productId: selectedProduct._id },
+    ]);
 
     // Reset current item
     setData({
       ...data,
-      items: [{ description: "", quantity: 0, price: 0 }],
+      items: [
+        {
+          description: "",
+          quantity: 0,
+          price: 0,
+          productId: "",
+          total: 0,
+        },
+      ],
     });
   };
 
@@ -185,6 +198,7 @@ const Orders = ({ searchQuery }) => {
         items[index].price = selectedProduct.price?.retail_price || 0;
         items[index].whole_sale_price =
           selectedProduct.price?.whole_sale_price || 0;
+        items[index].productId = selectedProduct._id;
       }
     }
 
@@ -230,7 +244,11 @@ const Orders = ({ searchQuery }) => {
             return;
           }
           // Add current item to preview items only if it's not already there
-          setPreviewItems([...previewItems, { ...currentItem }]);
+          setPreviewItems([
+            ...previewItems,
+            { ...currentItem, productId: selectedProduct._id },
+          ]);
+          console.log(data.items[0].productId);
         }
       }
 
@@ -238,7 +256,15 @@ const Orders = ({ searchQuery }) => {
       // Combine preview items and current item if it exists
       let allItems = [...previewItems];
       if (data.items[0].description && data.items[0].quantity > 0) {
-        allItems.push({ ...data.items[0] });
+        const selectedProduct = products.find(
+          (product) => product.name === data.items[0].description
+        );
+        if (selectedProduct) {
+          allItems.push({
+            ...data.items[0],
+            productId: selectedProduct._id,
+          });
+        }
       }
 
       // Calculate total amount using all items
@@ -259,9 +285,19 @@ const Orders = ({ searchQuery }) => {
       const orderPayload = {
         invoiceNumber: data.invoiceNumber,
         customerName: data.customerName,
-        paymentMethod: paymentMethod,
-        items: allItems,
+        paymentMethod: paymentMethod || "cash",
+        paymentType: "full",
+        items: allItems
+          .map((item) => ({
+            description: item.description || "",
+            quantity: parseInt(item.quantity) || 0,
+            price: parseFloat(item.price) || 0,
+            productId: item.productId || null,
+          }))
+          .filter((item) => item.description && item.quantity > 0),
       };
+
+      console.log("Submitting order payload:", orderPayload);
       //order payload
       // const orderPayload = {
       //   invoiceNumber: data.invoiceNumber,
@@ -314,18 +350,18 @@ const Orders = ({ searchQuery }) => {
         console.log(finalItems);
 
         //update the products to undertake the deduction
-        for (const item of finalItems) {
-          const selectedProduct = products.find(
-            (product) => product.name === item.description
-          );
+        // for (const item of finalItems) {
+        //   const selectedProduct = products.find(
+        //     (product) => product.name === item.description
+        //   );
 
-          if (selectedProduct) {
-            await axios.post(`${baseURL}/product-update`, {
-              productId: selectedProduct._id,
-              quantityToDeduct: item.quantity,
-            });
-          }
-        }
+        //   if (selectedProduct) {
+        //     await axios.post(`${baseURL}/product-update`, {
+        //       productId: selectedProduct._id,
+        //       quantityToDeduct: item.quantity,
+        //     });
+        //   }
+        // }
       }
     } catch (error) {
       console.error("Error submitting invoice:", error);
