@@ -329,19 +329,19 @@ const Orders = ({ searchQuery }) => {
       }
     } catch (error) {
       console.error("Error submitting invoice:", error);
-      toast.error(
-        error.response?.data?.error ||
-          "Failed to submit invoice. Please try again.",
-        {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        }
-      );
+      // toast.error(
+      //   error.response?.data?.error ||
+      //     "Failed to submit invoice. Please try again.",
+      //   {
+      //     position: "top-right",
+      //     autoClose: 3000,
+      //     hideProgressBar: false,
+      //     closeOnClick: true,
+      //     pauseOnHover: true,
+      //     draggable: true,
+      //     progress: undefined,
+      //   }
+      // );
     }
   };
 
