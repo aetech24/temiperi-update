@@ -12,7 +12,7 @@ const baseUrl = window.location.hostname === "localhost" ? devUrl : prodUrl;
 const Invoices = ({ searchQuery }) => {
   const [invoices, setInvoices] = useState([]);
   const [filteredInvoices, setFilteredInvoices] = useState([]);
-  const [activeFilter, setActiveFilter] = useState("all");
+  const [activeFilter, setActiveFilter] = useState("today");
   const [showPhonePrompt, setShowPhonePrompt] = useState(false);
   const [customerPhone, setCustomerPhone] = useState("");
   const [selectedInvoice, setSelectedInvoice] = useState(null);
