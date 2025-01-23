@@ -7,12 +7,13 @@ import EditInvoiceModal from "../components/EditInvoiceModal";
 const devUrl = "http://localhost:4000/temiperi/invoices";
 const prodUrl =
   "https://temiperi-stocks-backend.onrender.com/temiperi/invoices";
+  
 const baseUrl = window.location.hostname === "localhost" ? devUrl : prodUrl;
 
 const Invoices = ({ searchQuery }) => {
   const [invoices, setInvoices] = useState([]);
   const [filteredInvoices, setFilteredInvoices] = useState([]);
-  const [activeFilter, setActiveFilter] = useState("today");
+  const [activeFilter, setActiveFilter] = useState("all");
   const [showPhonePrompt, setShowPhonePrompt] = useState(false);
   const [customerPhone, setCustomerPhone] = useState("");
   const [selectedInvoice, setSelectedInvoice] = useState(null);
