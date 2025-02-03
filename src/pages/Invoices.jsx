@@ -7,7 +7,7 @@ import EditInvoiceModal from "../components/EditInvoiceModal";
 const devUrl = "http://localhost:4000/temiperi/invoices";
 const prodUrl =
   "https://temiperi-stocks-backend.onrender.com/temiperi/invoices";
-  
+
 const baseUrl = window.location.hostname === "localhost" ? devUrl : prodUrl;
 
 const Invoices = ({ searchQuery }) => {
@@ -600,7 +600,7 @@ const Invoices = ({ searchQuery }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
             <h3 className="text-lg font-medium mb-4">
-              Enter Customer's Phone Number
+              Enter Customer&apos;s Phone Number
             </h3>
             <input
               type="text"

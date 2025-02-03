@@ -164,6 +164,7 @@ const Orders = ({ searchQuery }) => {
           price: 0,
           productId: "",
           total: 0,
+          name: selectedProduct.name,
         },
       ],
     });
@@ -279,6 +280,7 @@ const Orders = ({ searchQuery }) => {
         paymentMethod: paymentMethod,
         items: allItems,
         totalAmount,
+        productName: data.items[0].name,
       };
 
       // Order payload should use the same items
