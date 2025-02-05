@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import InvoiceTable from "../components/InvoiceTable";
@@ -476,66 +476,37 @@ const Invoices = ({ searchQuery }) => {
   };
 
   const handleSaveEdit = async (editedInvoice) => {
-    if (!editedInvoice || !editedInvoice._id) {
-      toast.error("Invalid invoice data");
-      return;
-    }
-
     try {
-      // Basic validation
-      if (
-        !editedInvoice.customerName ||
-        !editedInvoice.items ||
-        editedInvoice.items.length === 0
-      ) {
-        throw new Error(
-          "Invalid invoice data. Please check all required fields."
-        );
-      }
-
-      // Calculate total amount to ensure it matches
-      const calculatedTotal = editedInvoice.items.reduce(
-        (sum, item) => sum + item.quantity * item.price,
-        0
-      );
-      if (Math.abs(calculatedTotal - editedInvoice.totalAmount) > 0.01) {
-        throw new Error(
-          "Total amount mismatch. Please check the calculations."
-        );
-      }
-
       const response = await axios.post(
         `https://temiperi-stocks-backend.onrender.com/temiperi/update-invoice?id=${editedInvoice._id}`,
         editedInvoice
       );
 
-      if (response.data) {
-        // Update both invoices and filtered invoices states with the updated invoice
-        const updatedInvoice = response.data;
-
-        setInvoices((prevInvoices) =>
-          prevInvoices.map((inv) =>
-            inv._id === editedInvoice._id ? updatedInvoice : inv
+      if (response.data.success) {
+        // Update the invoices state with the edited invoice
+        setInvoices(prevInvoices => 
+          prevInvoices.map(invoice => 
+            invoice._id === editedInvoice._id ? response.data.invoice : invoice
+          )
+        );
+        
+        // Update filtered invoices as well
+        setFilteredInvoices(prevFiltered => 
+          prevFiltered.map(invoice => 
+            invoice._id === editedInvoice._id ? response.data.invoice : invoice
           )
         );
 
-        setFilteredInvoices((prevFiltered) =>
-          prevFiltered.map((inv) =>
-            inv._id === editedInvoice._id ? updatedInvoice : inv
-          )
-        );
-
-        toast.success("Invoice updated successfully");
+        // Close the modal
         setIsEditing(false);
         setEditingInvoice(null);
-      } else {
-        throw new Error("Invalid response from server");
+        
+        // Show success message
+        toast.success("Invoice updated successfully");
       }
     } catch (error) {
       console.error("Error updating invoice:", error);
-      toast.error(
-        error.message || "Failed to update invoice. Please try again."
-      );
+      toast.error(error.response?.data?.message || "Failed to update invoice");
     }
   };
 

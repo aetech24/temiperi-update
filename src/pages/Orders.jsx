@@ -222,38 +222,15 @@ const Orders = ({ searchQuery }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Check if there are any items to submit
-      if (data.items.length === 0) {
-        const currentItem = data.items[0];
-
-        // If no items in preview and current item is empty, show error
-        if (!currentItem.description || currentItem.quantity <= 0) {
-          toast.error("Please add at least one item before submitting.");
-          return;
-        }
-
-        // If current item has data, add it first
-        if (currentItem.description && currentItem.quantity > 0) {
-          const selectedProduct = products.find(
-            (product) => product.name === currentItem.description
-          );
-          if (
-            selectedProduct &&
-            selectedProduct.quantity < currentItem.quantity
-          ) {
-            toast.error("Not enough stock available for this product.");
-            return;
-          }
-          // Add current item to preview items only if it's not already there
-          setPreviewItems([
-            ...previewItems,
-            { ...currentItem, productId: selectedProduct._id },
-          ]);
-          console.log(data.items[0].productId);
-        }
+      // Validate items array
+      if (
+        previewItems.length === 0 &&
+        (!data.items[0].description || data.items[0].quantity <= 0)
+      ) {
+        toast.error("Please add at least one item before submitting.");
+        return;
       }
 
-      // Use only the preview items for final submission
       // Combine preview items and current item if it exists
       let allItems = [...previewItems];
       if (data.items[0].description && data.items[0].quantity > 0) {
@@ -268,55 +245,31 @@ const Orders = ({ searchQuery }) => {
         }
       }
 
-      // Calculate total amount using all items
+      // Calculate total amount
       const totalAmount = allItems.reduce((sum, item) => {
         return sum + item.quantity * item.price;
       }, 0);
 
-      // Prepare the invoice data using all items
+      // Prepare the invoice data
       const invoiceData = {
         invoiceNumber: data.invoiceNumber,
         customerName: data.customerName,
-        paymentMethod: paymentMethod,
-        items: allItems,
-        totalAmount,
-        productName: data.items[0].name,
-        productId: allItems.map((item) => ({
-          productId: item.productId || null,
-        })),
-      };
-
-      // Order payload should use the same items
-      const orderPayload = {
-        invoiceNumber: data.invoiceNumber,
-        customerName: data.customerName,
         paymentMethod: paymentMethod || "cash",
-        paymentType: "full",
-        items: allItems
-          .map((item) => ({
-            description: item.description || "",
-            quantity: parseInt(item.quantity) || 0,
-            price: parseFloat(item.price) || 0,
-            productId: item.productId || null,
-          }))
-          .filter((item) => item.description && item.quantity > 0),
+        items: allItems.map((item) => ({
+          description: item.description,
+          quantity: parseInt(item.quantity),
+          price: parseFloat(item.price),
+        })),
+        totalAmount: parseFloat(totalAmount.toFixed(2)),
+        // Only include productId if you have it
+        ...(allItems[0]?.productId && { productId: allItems[0].productId }),
+        ...(allItems[0]?.description && {
+          productName: allItems[0].description,
+        }),
       };
-
-      console.log("Submitting order payload:", orderPayload);
-      //order payload
-      // const orderPayload = {
-      //   invoiceNumber: data.invoiceNumber,
-      //   customerName: data.customerName,
-      //   paymentMethod: paymentMethod,
-      //   items: data.items.map((item) => ({
-      //     description: item.description,
-      //     quantity: item.quantity,
-      //     price: item.price,
-      //   })),
-      // };
 
       // Submit the invoice
-      await axios.post(
+      const invoiceResponse = await axios.post(
         "https://temiperi-stocks-backend.onrender.com/temiperi/invoice",
         invoiceData,
         {
@@ -326,63 +279,38 @@ const Orders = ({ searchQuery }) => {
         }
       );
 
-      //submit the order
-      const orderResponse = await axios.post(
-        "https://temiperi-stocks-backend.onrender.com/temiperi/order",
-        orderPayload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
+      if (invoiceResponse.status === 201) {
+        console.log(invoiceResponse.data.productId);
+        // Now submit the order
+        const orderPayload = {
+          invoiceNumber: data.invoiceNumber,
+          customerName: data.customerName,
+          paymentMethod: paymentMethod || "cash",
+          paymentType: "full",
+          items: allItems.map((item) => ({
+            description: item.description,
+            quantity: parseInt(item.quantity),
+            price: parseFloat(item.price),
+            productId: item.productId || null,
+          })),
+        };
+
+        const orderResponse = await axios.post(
+          "https://temiperi-stocks-backend.onrender.com/temiperi/order",
+          orderPayload
+        );
+
+        if (orderResponse.status === 201) {
+          setIsModalOpen(true);
+          toast.success("Order submitted successfully!");
         }
-      );
-
-      console.log(data);
-
-      setIsModalOpen(true);
-
-      if (orderResponse.status === 201) {
-        toast.success("Order submitted successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-
-        console.log(finalItems);
-
-        //update the products to undertake the deduction
-        // for (const item of finalItems) {
-        //   const selectedProduct = products.find(
-        //     (product) => product.name === item.description
-        //   );
-
-        //   if (selectedProduct) {
-        //     await axios.post(`${baseURL}/product-update`, {
-        //       productId: selectedProduct._id,
-        //       quantityToDeduct: item.quantity,
-        //     });
-        //   }
-        // }
       }
     } catch (error) {
-      console.error("Error submitting invoice:", error);
-      // toast.error(
-      //   error.response?.data?.error ||
-      //     "Failed to submit invoice. Please try again.",
-      //   {
-      //     position: "top-right",
-      //     autoClose: 3000,
-      //     hideProgressBar: false,
-      //     closeOnClick: true,
-      //     pauseOnHover: true,
-      //     draggable: true,
-      //     progress: undefined,
-      //   }
-      // );
+      console.error("Error submitting:", error);
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to submit. Please check your data and try again."
+      );
     }
   };
 

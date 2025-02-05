@@ -47,24 +47,42 @@ const EditInvoiceModal = ({ invoice, isOpen, onClose, onSave }) => {
 
   const handleItemChange = (index, field, value) => {
     const updatedItems = [...editedInvoice.items];
-    updatedItems[index] = {
-      ...updatedItems[index],
-      [field]:
-        field === "quantity" || field === "price"
-          ? parseFloat(value) || 0
-          : value,
-    };
+    
+    // Handle quantity specifically
+    if (field === "quantity") {
+      // Convert to number and validate
+      const numValue = parseInt(value, 10);
+      if (isNaN(numValue) || numValue < 0) return; // Don't update if invalid
+      updatedItems[index] = {
+        ...updatedItems[index],
+        quantity: numValue
+      };
+    } else if (field === "price") {
+      // Convert to number and validate
+      const numValue = parseFloat(value);
+      if (isNaN(numValue) || numValue < 0) return; // Don't update if invalid
+      updatedItems[index] = {
+        ...updatedItems[index],
+        price: numValue
+      };
+    } else {
+      // Handle other fields normally
+      updatedItems[index] = {
+        ...updatedItems[index],
+        [field]: value
+      };
+    }
 
     // Recalculate total amount
     const totalAmount = updatedItems.reduce(
-      (sum, item) => sum + item.quantity * item.price,
+      (sum, item) => sum + (item.quantity * item.price),
       0
     );
 
     setEditedInvoice((prev) => ({
       ...prev,
       items: updatedItems,
-      totalAmount,
+      totalAmount
     }));
   };
 
@@ -149,9 +167,38 @@ const EditInvoiceModal = ({ invoice, isOpen, onClose, onSave }) => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(editedInvoice);
+    
+    // Validate the edited invoice
+    if (!editedInvoice.items || editedInvoice.items.length === 0) {
+      toast.error("Invoice must have at least one item");
+      return;
+    }
+
+    // Validate each item
+    for (const item of editedInvoice.items) {
+      if (!item.description || !item.quantity || !item.price) {
+        toast.error("Each item must have a description, quantity, and price");
+        return;
+      }
+      if (item.quantity <= 0) {
+        toast.error("Quantity must be greater than 0");
+        return;
+      }
+      if (item.price <= 0) {
+        toast.error("Price must be greater than 0");
+        return;
+      }
+    }
+
+    try {
+      await onSave(editedInvoice);
+      // The modal will be closed by the parent component after successful save
+    } catch (error) {
+      console.error("Error in handleSubmit:", error);
+      toast.error("Failed to save changes");
+    }
   };
 
   const filteredProducts = products.filter((product) =>
