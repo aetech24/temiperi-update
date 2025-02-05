@@ -281,6 +281,9 @@ const Orders = ({ searchQuery }) => {
         items: allItems,
         totalAmount,
         productName: data.items[0].name,
+        productId: allItems.map((item) => ({
+          productId: item.productId || null,
+        })),
       };
 
       // Order payload should use the same items
