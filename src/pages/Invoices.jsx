@@ -6,7 +6,7 @@ import EditInvoiceModal from "../components/EditInvoiceModal";
 
 const devUrl = "http://localhost:4000/temiperi/invoices";
 const prodUrl =
-  "https://temiperi-stocks-backend.onrender.com/temiperi/invoices";
+  "https://temiperi-stocks-backend.onrender.com/temiperi/invoicces";
 
 const baseUrl = window.location.hostname === "localhost" ? devUrl : prodUrl;
 
