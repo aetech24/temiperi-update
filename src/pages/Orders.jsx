@@ -574,7 +574,7 @@ const Orders = ({ searchQuery }) => {
           </label>
           <label className="flex flex-col gap-1">
             Payment Method:
-            <div className = 'text-red-500 text-2xl'>Ephraim owes me. Let him pay the money else I pull down everything. This is my work and I own it. Until he pays me, it is my intellectual property</div>
+{/*             <div className = 'text-red-500 text-2xl'>Ephraim owes me. Let him pay the money else I pull down everything. This is my work and I own it. Until he pays me, it is my intellectual property</div> */}
             <select
               value={paymentMethod}
               onChange={handlePaymentMethodChange}
