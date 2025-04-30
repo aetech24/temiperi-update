@@ -6,7 +6,7 @@ import EditInvoiceModal from "../components/EditInvoiceModal";
 
 const devUrl = "http://localhost:4000/temiperi/invoices";
 const prodUrl =
-  "https://temiperi-stocks-backend.onrender.com/temiperi/invoices";
+  "https://temiperi-eaze.onrender.com/temiperi/invoices";
 
 const baseUrl = window.location.hostname === "localhost" ? devUrl : prodUrl;
 
@@ -446,7 +446,7 @@ const Invoices = ({ searchQuery }) => {
       if (!confirmResult) return;
 
       const response = await axios.get(
-        `https://temiperi-stocks-backend.onrender.com/temiperi/delete-invoice?id=${invoiceId}`
+        `https://temiperi-eaze.onrender.com/temiperi/delete-invoice?id=${invoiceId}`
       );
 
       if (response.data) {
@@ -478,7 +478,7 @@ const Invoices = ({ searchQuery }) => {
   const handleSaveEdit = async (editedInvoice) => {
     try {
       const response = await axios.post(
-        `https://temiperi-stocks-backend.onrender.com/temiperi/update-invoice?id=${editedInvoice._id}`,
+        `https://temiperi-eaze.onrender.com/temiperi/update-invoice?id=${editedInvoice._id}`,
         editedInvoice
       );
 

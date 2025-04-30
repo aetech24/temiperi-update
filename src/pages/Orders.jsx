@@ -36,7 +36,7 @@ const modalStyle = {
 
 const baseURL =
   process.env.NODE_ENV === "production"
-    ? "https://temiperi-stocks-backend.onrender.com/temiperi"
+    ? "https://temiperi-eaze.onrender.com/temiperi"
     : "http://localhost:4000/temiperi";
 
 const Orders = ({ searchQuery }) => {
@@ -74,7 +74,7 @@ const Orders = ({ searchQuery }) => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(
-          "https://temiperi-stocks-backend.onrender.com/temiperi/products"
+          "https://temiperi-eaze.onrender.com/temiperi/products"
         );
         setProducts(response.data.products);
       } catch (error) {
@@ -87,7 +87,7 @@ const Orders = ({ searchQuery }) => {
       try {
         setLoading(true);
         const response = await axios.post(
-          "https://temiperi-stocks-backend.onrender.com/temiperi//invoice/number"
+          "https://temiperi-eaze.onrender.com/temiperi//invoice/number"
         );
         const { invoiceNumber } = response.data;
         if (
@@ -270,7 +270,7 @@ const Orders = ({ searchQuery }) => {
 
       // Submit the invoice
       const invoiceResponse = await axios.post(
-        "https://temiperi-stocks-backend.onrender.com/temiperi/invoice",
+        "https://temiperi-eaze.onrender.com/temiperi/invoice",
         invoiceData,
         {
           headers: {
@@ -296,7 +296,7 @@ const Orders = ({ searchQuery }) => {
         };
 
         const orderResponse = await axios.post(
-          "https://temiperi-stocks-backend.onrender.com/temiperi/order",
+          "https://temiperi-eaze.onrender.com/temiperi/order",
           orderPayload
         );
 

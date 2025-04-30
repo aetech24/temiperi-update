@@ -11,7 +11,7 @@ const Products = ({ searchQuery }) => {
   const fetchProducts = async () => {
     try {
       const response = await axios.get(
-        "https://temiperi-stocks-backend.onrender.com/temiperi/products"
+        "https://temiperi-eaze.onrender.com/temiperi/products"
       );
       const data = response.data.products || [];
       setProducts(data);
