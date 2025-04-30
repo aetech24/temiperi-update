@@ -42,7 +42,7 @@ const Invoices = ({ searchQuery }) => {
         }
       } catch (error) {
         console.error("Error fetching invoices:", error);
-        toast.error("Failed to fetch invoices");
+        // toast.error("Failed to fetch invoices");
       }
     };
     fetchInvoices();
