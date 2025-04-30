@@ -23,7 +23,7 @@ const EditInvoiceModal = ({ invoice, isOpen, onClose, onSave }) => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(
-          "https://temiperi-stocks-backend.onrender.com/temiperi/products"
+          "https://temiperi-eaze.onrender.com/temiperi/products"
         );
         setProducts(response.data.products);
       } catch (error) {

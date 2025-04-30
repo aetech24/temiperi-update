@@ -42,7 +42,7 @@ const Invoices = ({ searchQuery }) => {
         }
       } catch (error) {
         console.error("Error fetching invoices:", error);
-        // toast.error("Failed to fetch invoices");
+        toast.error("Failed to fetch invoices");
       }
     };
     fetchInvoices();
@@ -446,7 +446,7 @@ const Invoices = ({ searchQuery }) => {
       if (!confirmResult) return;
 
       const response = await axios.get(
-        `https://temiperi-eaze.onrender.com/temiperi/delete-invoice?id=${invoiceId}`
+        `https://temiperi-stocks-backend.onrender.com/temiperi/delete-invoice?id=${invoiceId}`
       );
 
       if (response.data) {
@@ -478,7 +478,7 @@ const Invoices = ({ searchQuery }) => {
   const handleSaveEdit = async (editedInvoice) => {
     try {
       const response = await axios.post(
-        `https://temiperi-eaze.onrender.com/temiperi/update-invoice?id=${editedInvoice._id}`,
+        `https://temiperi-stocks-backend.onrender.com/temiperi/update-invoice?id=${editedInvoice._id}`,
         editedInvoice
       );
 
