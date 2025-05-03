@@ -5,6 +5,8 @@ import { Routes, Route } from "react-router-dom";
 import Products from "./pages/Products";
 import Orders from "./pages/Orders";
 import Invoices from "./pages/Invoices";
+import Expenditures from "./pages/Expenditures"; // Import the new page
+import ChatRoom from "./pages/ChatRoom";
 import { HiMenuAlt2 } from "react-icons/hi";
 import InvoiceSkeleton from "./components/InvoiceSkeleton";
 
@@ -58,6 +60,11 @@ const App = () => {
               path="/invoices"
               element={<Invoices searchQuery={searchQuery} />}
             />
+            <Route
+              path="/expenditures"
+              element={<Expenditures searchQuery={searchQuery} />}
+            />
+            <Route path="/chat" element={<ChatRoom />} />
             <Route path="/skeleton" element={<InvoiceSkeleton />} />
           </Routes>
         </div>

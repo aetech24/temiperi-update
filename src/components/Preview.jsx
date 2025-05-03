@@ -35,6 +35,16 @@ const Preview = ({ data, previewItems }) => {
                     <h4 className="text-gray-800 font-semibold">Invoice #: {data.invoiceNumber || 'Not Generated'}</h4>
                     <h4 className="text-gray-800 font-semibold">Customer: {data.customerName || 'Not Specified'}</h4>
                     <h4 className="text-gray-800 font-semibold">Payment Method: {data?.paymentMethod || 'Not Specified'}</h4>
+                    
+                    {/* Show scheduled delivery information if applicable */}
+                    {data.isScheduled && (
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                            <h4 className="text-gray-800 font-semibold">Scheduled for Delivery</h4>
+                            <p className="text-gray-600">Delivery Date: {data.deliveryDate?.toLocaleDateString()}</p>
+                            {data.deliveryAddress && <p className="text-gray-600">Address: {data.deliveryAddress}</p>}
+                            {data.deliveryNotes && <p className="text-gray-600">Notes: {data.deliveryNotes}</p>}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -95,6 +105,31 @@ const Preview = ({ data, previewItems }) => {
                 </tfoot>
             </table>
 
+            {/* Payment Details */}
+            <div className="mt-6 p-4 bg-white rounded-lg">
+                <h3 className="text-xl font-semibold text-gray-800 mb-3">Payment Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="border-r border-gray-200 pr-4">
+                        <p className="text-gray-600">Total Amount:</p>
+                        <p className="text-xl font-bold">GH₵{totalAmount.toFixed(2)}</p>
+                    </div>
+                    
+                    <div className="border-r border-gray-200 pr-4 pl-4">
+                        <p className="text-gray-600">Amount Paid:</p>
+                        <p className="text-xl font-bold">GH₵{(parseFloat(data.amountPaid) || totalAmount).toFixed(2)}</p>
+                    </div>
+                    
+                    <div className="pl-4">
+                        <p className="text-gray-600">Balance/Change:</p>
+                        <p className={`text-xl font-bold ${(data.balance >= 0) ? 'text-green-600' : 'text-red-600'}`}>
+                            GH₵{(data.balance || 0).toFixed(2)}
+                            {data.balance > 0 && " (Change)"}
+                            {data.balance < 0 && " (Owing)"}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             {/* Footer */}
             <div className="mt-10 pt-5 border-t-2 border-gray-200">
                 <div className="flex justify-between items-center mb-8">
@@ -111,4 +146,5 @@ const Preview = ({ data, previewItems }) => {
     );
 };
 
+// Make sure to have this explicit default export statement
 export default Preview;

@@ -6,11 +6,13 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { BsWhatsapp } from "react-icons/bs";
-import { MdOutlinePrint } from "react-icons/md";
+import { MdOutlinePrint, MdSchedule } from "react-icons/md";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import html2pdf from "html2pdf.js";
 import Modal from "react-modal";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 Modal.setAppElement("#root"); // Set the app element for accessibility
 
@@ -63,6 +65,27 @@ const Orders = ({ searchQuery }) => {
   const [isWhatsAppSent, setIsWhatsAppSent] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [showPhonePromptModal, setShowPhonePromptModal] = useState(false);
+
+  // New state variables for payment tracking
+  const [amountPaid, setAmountPaid] = useState("");
+  const [balance, setBalance] = useState(0);
+
+  // New state variables for order scheduling
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [deliveryDate, setDeliveryDate] = useState(new Date());
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [deliveryNotes, setDeliveryNotes] = useState("");
+
+  // New state variables for expenditure tracking
+  const [showExpenditure, setShowExpenditure] = useState(false);
+  const [expenditure, setExpenditure] = useState({
+    amount: "",
+    description: "",
+    category: "utilities", // default category
+    date: new Date(),
+  });
+  const [expenditures, setExpenditures] = useState([]);
 
   useEffect(() => {
     const savedPreviewItems = localStorage.getItem("previewItems");
@@ -117,9 +140,39 @@ const Orders = ({ searchQuery }) => {
       }
     };
 
+    const fetchExpenditures = async () => {
+      try {
+        const response = await axios.get(
+          "https://temiperi-eaze.onrender.com/temiperi/expenditures"
+        );
+        if (response.data && response.data.expenditures) {
+          setExpenditures(response.data.expenditures);
+        }
+      } catch (error) {
+        console.error("Error fetching expenditures:", error);
+      }
+    };
+
     fetchProducts();
     generateInvoiceNumber();
+    fetchExpenditures();
   }, []);
+
+  // Calculate balance whenever amount paid changes
+  useEffect(() => {
+    const calculatedTotal =
+      previewItems.reduce(
+        (sum, item) => sum + item.quantity * item.price,
+        0
+      ) +
+      (data.items[0].description
+        ? data.items[0].quantity * data.items[0].price
+        : 0);
+
+    const paid = parseFloat(amountPaid) || 0;
+    const calculatedBalance = paid - calculatedTotal;
+    setBalance(calculatedBalance);
+  }, [amountPaid, previewItems, data.items]);
 
   const onChangeHandler = (e) => {
     const { name, value } = e.target;
@@ -219,6 +272,80 @@ const Orders = ({ searchQuery }) => {
     setData({ ...data, items });
   };
 
+  const handleExpenditureChange = (e) => {
+    const { name, value } = e.target;
+    setExpenditure((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleExpenditureSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!expenditure.amount || !expenditure.description) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        "https://temiperi-eaze.onrender.com/temiperi/expenditure",
+        {
+          ...expenditure,
+          amount: parseFloat(expenditure.amount),
+        }
+      );
+
+      if (response.status === 201 || response.status === 200) {
+        toast.success("Expenditure recorded successfully!");
+
+        // Add new expenditure to the list
+        setExpenditures((prev) => [response.data.expenditure, ...prev]);
+
+        // Reset form
+        setExpenditure({
+          amount: "",
+          description: "",
+          category: "utilities",
+          date: new Date(),
+        });
+
+        // Close the form
+        setShowExpenditure(false);
+      }
+    } catch (error) {
+      console.error("Error recording expenditure:", error);
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to record expenditure. Please try again."
+      );
+    }
+  };
+
+  const handleDeleteExpenditure = async (id) => {
+    if (!id) return;
+
+    try {
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this expenditure?"
+      );
+      if (!confirmDelete) return;
+
+      const response = await axios.delete(
+        `https://temiperi-eaze.onrender.com/temiperi/expenditure/${id}`
+      );
+
+      if (response.status === 200) {
+        toast.success("Expenditure deleted successfully");
+        setExpenditures((prev) => prev.filter((exp) => exp._id !== id));
+      }
+    } catch (error) {
+      console.error("Error deleting expenditure:", error);
+      toast.error("Failed to delete expenditure");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -266,6 +393,16 @@ const Orders = ({ searchQuery }) => {
         ...(allItems[0]?.description && {
           productName: allItems[0].description,
         }),
+        // Add payment tracking information
+        amountPaid: parseFloat(amountPaid) || totalAmount,
+        balance: parseFloat(balance.toFixed(2)) || 0,
+        // Add scheduling information if applicable
+        isScheduled: isScheduled,
+        ...(isScheduled && {
+          deliveryDate,
+          deliveryAddress,
+          deliveryNotes,
+        }),
       };
 
       // Submit the invoice
@@ -293,6 +430,16 @@ const Orders = ({ searchQuery }) => {
             price: parseFloat(item.price),
             productId: item.productId || null,
           })),
+          // Add payment tracking information
+          amountPaid: parseFloat(amountPaid) || totalAmount,
+          balance: parseFloat(balance.toFixed(2)) || 0,
+          // Add scheduling information if applicable
+          isScheduled: isScheduled,
+          ...(isScheduled && {
+            deliveryDate,
+            deliveryAddress,
+            deliveryNotes,
+          }),
         };
 
         const orderResponse = await axios.post(
@@ -324,6 +471,20 @@ const Orders = ({ searchQuery }) => {
       setCashAmount("");
       setMomoAmount("");
     }
+  };
+
+  const handleToggleSchedule = () => {
+    setShowScheduleModal(true);
+  };
+
+  const handleScheduleSubmit = () => {
+    setIsScheduled(true);
+    setShowScheduleModal(false);
+    toast.success("Order scheduled for delivery");
+  };
+
+  const handleCancelSchedule = () => {
+    setShowScheduleModal(false);
   };
 
   const generatePDF = async () => {
@@ -467,11 +628,6 @@ const Orders = ({ searchQuery }) => {
       return;
     }
 
-    // Create a message with invoice details
-    // const message = `Hello! Here's your invoice #${data.invoiceNumber}\n\n` +
-    //     `Total Amount: GH₵${previewItems.reduce((sum, item) => sum + item.quantity * item.price, 0).toFixed(2)}\n\n` +
-    //     `Thank you for your business!`;
-
     const message =
       `*TEMIPERI ENTERPRISE*\n\n` +
       `*Invoice #:* ${data.invoiceNumber}\n` +
@@ -488,13 +644,11 @@ const Orders = ({ searchQuery }) => {
       `Total Amount: GH₵${totalAmount.toFixed(2)}\n\n` +
       `Thank you for your business!`;
 
-    // Format phone number and create WhatsApp URL
     const formattedPhone = customerPhone.replace(/\D/g, "");
     const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(
       message
     )}`;
 
-    // Open WhatsApp in new window
     window.open(whatsappUrl, "_blank");
     setShowPhonePrompt(false);
     setIsWhatsAppSent(true);
@@ -537,7 +691,6 @@ const Orders = ({ searchQuery }) => {
   const handlePrintModal = async () => {
     try {
       await handlePrintInvoice();
-      // Wait for the print dialog to complete
       setTimeout(() => {
         setIsModalOpen(false);
         window.location.reload();
@@ -555,8 +708,159 @@ const Orders = ({ searchQuery }) => {
   return (
     <div className="pt-4 md:px-6 flex gap-6 flex-col lg:flex-row w-full">
       <div className="flex flex-col gap-4 flex-1">
-        <h1 className="text-3xl font-medium">Submit Order</h1>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-2 ">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-medium">Submit Order</h1>
+          <button
+            onClick={() => setShowExpenditure(!showExpenditure)}
+            className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 flex items-center gap-2"
+          >
+            {showExpenditure ? "Hide Expenditure" : "Record Expenditure"}
+          </button>
+        </div>
+
+        {/* Expenditure Form */}
+        {showExpenditure && (
+          <div className="bg-white p-4 rounded-lg shadow-md mb-4">
+            <h2 className="text-xl font-semibold mb-4">Record Expenditure</h2>
+            <form
+              onSubmit={handleExpenditureSubmit}
+              className="flex flex-col gap-3"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Amount (GH₵):
+                  </label>
+                  <input
+                    type="number"
+                    name="amount"
+                    value={expenditure.amount}
+                    onChange={handleExpenditureChange}
+                    className="border p-2 rounded-md border-black outline-none w-full"
+                    placeholder="Enter amount"
+                    step="0.01"
+                    min="0"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Category:
+                  </label>
+                  <select
+                    name="category"
+                    value={expenditure.category}
+                    onChange={handleExpenditureChange}
+                    className="border p-2 rounded-md border-black outline-none w-full"
+                    required
+                  >
+                    <option value="utilities">Utilities</option>
+                    <option value="rent">Rent</option>
+                    <option value="supplies">Office Supplies</option>
+                    <option value="salary">Salaries</option>
+                    <option value="transport">Transportation</option>
+                    <option value="maintenance">Maintenance</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Description:
+                </label>
+                <textarea
+                  name="description"
+                  value={expenditure.description}
+                  onChange={handleExpenditureChange}
+                  className="border p-2 rounded-md border-black outline-none w-full"
+                  placeholder="Enter expenditure details"
+                  rows="3"
+                  required
+                ></textarea>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Date:</label>
+                <DatePicker
+                  selected={expenditure.date}
+                  onChange={(date) =>
+                    setExpenditure((prev) => ({ ...prev, date }))
+                  }
+                  className="border p-2 rounded-md border-black outline-none w-full"
+                  maxDate={new Date()}
+                />
+              </div>
+              <div className="flex justify-end mt-2">
+                <button
+                  type="submit"
+                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+                >
+                  Save Expenditure
+                </button>
+              </div>
+            </form>
+
+            {/* Recent Expenditures */}
+            {expenditures.length > 0 && (
+              <div className="mt-6">
+                <h3 className="font-medium mb-2">Recent Expenditures</h3>
+                <div className="max-h-60 overflow-y-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Date
+                        </th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Description
+                        </th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Category
+                        </th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Amount
+                        </th>
+                        <th className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {expenditures.slice(0, 5).map((item) => (
+                        <tr key={item._id}>
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                            {new Date(item.date).toLocaleDateString()}
+                          </td>
+                          <td className="px-3 py-2 text-sm text-gray-900 max-w-[200px] truncate">
+                            {item.description}
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 capitalize">
+                            {item.category}
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                            GH₵{item.amount.toFixed(2)}
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap text-sm">
+                            <button
+                              onClick={() =>
+                                handleDeleteExpenditure(item._id)
+                              }
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Existing form */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2">
           <label className="flex flex-col gap-1">
             Invoice Number
             <InvoiceGenerator value={data.invoiceNumber} loading={loading} />
@@ -574,7 +878,6 @@ const Orders = ({ searchQuery }) => {
           </label>
           <label className="flex flex-col gap-1">
             Payment Method:
-{/*             <div className = 'text-red-500 text-2xl'>Ephraim owes me. Let him pay the money else I pull down everything. This is my work and I own it. Until he pays me, it is my intellectual property</div> */}
             <select
               value={paymentMethod}
               onChange={handlePaymentMethodChange}
@@ -614,6 +917,74 @@ const Orders = ({ searchQuery }) => {
               </label>
             </div>
           )}
+
+          <div className="mt-4 p-4 border border-gray-300 rounded-lg bg-gray-50">
+            <h3 className="text-lg font-medium mb-2">Payment Details</h3>
+            <div className="flex flex-col md:flex-row md:gap-4 space-y-2 md:space-y-0">
+              <div className="flex-1">
+                <label className="block text-sm font-medium">
+                  Total Amount:
+                  <span className="ml-2 text-lg font-bold">
+                    GH₵{totalAmount.toFixed(2)}
+                  </span>
+                </label>
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium">
+                  Amount Paid:
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={amountPaid}
+                  onChange={(e) => setAmountPaid(e.target.value)}
+                  className="w-full border p-2 rounded-md border-black outline-none"
+                  placeholder="Enter amount paid"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium">
+                  Balance/Change:
+                </label>
+                <div
+                  className={`w-full p-2 rounded-md font-bold ${
+                    balance >= 0
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  GH₵{balance.toFixed(2)}
+                  {balance >= 0 && balance > 0
+                    ? " (Change)"
+                    : balance < 0
+                    ? " (Owing)"
+                    : ""}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-2">
+            <button
+              type="button"
+              onClick={handleToggleSchedule}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md ${
+                isScheduled
+                  ? "bg-green-100 text-green-800 border border-green-300"
+                  : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+              }`}
+            >
+              <MdSchedule className="text-xl" />
+              {isScheduled ? "Scheduled for Delivery" : "Schedule for Later"}
+            </button>
+            {isScheduled && (
+              <div className="mt-2 text-sm text-gray-600">
+                Delivery on: {deliveryDate.toLocaleDateString()}
+                {deliveryAddress && ` • Address: ${deliveryAddress}`}
+              </div>
+            )}
+          </div>
+
           <h3 className="text-2xl font-medium pt-4">Add Item</h3>
           <div className="items">
             <label className="flex flex-col gap-2">
@@ -691,7 +1062,18 @@ const Orders = ({ searchQuery }) => {
       </div>
       <div className="flex-1">
         <div id="invoice-content">
-          <Preview data={data} previewItems={previewItems} />
+          <Preview
+            data={{
+              ...data,
+              amountPaid,
+              balance,
+              isScheduled,
+              deliveryDate,
+              deliveryAddress,
+              deliveryNotes,
+            }}
+            previewItems={previewItems}
+          />
         </div>
         <div className="mt-4 flex gap-4 justify-end">
           <button
@@ -710,7 +1092,6 @@ const Orders = ({ searchQuery }) => {
           </button>
         </div>
 
-        {/* Phone number prompt */}
         {showPhonePrompt && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
             <div className="bg-white p-6 rounded-lg shadow-xl">
@@ -771,7 +1152,6 @@ const Orders = ({ searchQuery }) => {
           </div>
         </Modal>
 
-        {/* Add phone prompt modal */}
         {showPhonePromptModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg">
@@ -794,6 +1174,71 @@ const Orders = ({ searchQuery }) => {
                   className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
                 >
                   Send
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showScheduleModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+              <h3 className="text-lg font-semibold mb-4">
+                Schedule Order for Delivery
+              </h3>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Delivery Date:
+                  </label>
+                  <DatePicker
+                    selected={deliveryDate}
+                    onChange={(date) => setDeliveryDate(date)}
+                    minDate={new Date()}
+                    className="w-full border p-2 rounded-md"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Delivery Address:
+                  </label>
+                  <input
+                    type="text"
+                    value={deliveryAddress}
+                    onChange={(e) => setDeliveryAddress(e.target.value)}
+                    className="w-full border p-2 rounded-md"
+                    placeholder="Enter delivery address"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Delivery Notes:
+                  </label>
+                  <textarea
+                    value={deliveryNotes}
+                    onChange={(e) => setDeliveryNotes(e.target.value)}
+                    className="w-full border p-2 rounded-md"
+                    placeholder="Add any special instructions"
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2 mt-6">
+                <button
+                  onClick={handleCancelSchedule}
+                  className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleScheduleSubmit}
+                  className="px-4 py-2 bg-blue text-white rounded hover:bg-opacity-80"
+                >
+                  Schedule Order
                 </button>
               </div>
             </div>

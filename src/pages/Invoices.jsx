@@ -3,6 +3,9 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import InvoiceTable from "../components/InvoiceTable";
 import EditInvoiceModal from "../components/EditInvoiceModal";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { FaCalendarAlt } from "react-icons/fa";
 
 const devUrl = "http://localhost:4000/temiperi/invoices";
 const prodUrl =
@@ -21,6 +24,11 @@ const Invoices = ({ searchQuery }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
   const printRef = useRef();
+  
+  // Date range filter states
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [showDateFilter, setShowDateFilter] = useState(false);
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -60,30 +68,43 @@ const Invoices = ({ searchQuery }) => {
     const thisWeekStart = new Date(today);
     thisWeekStart.setDate(thisWeekStart.getDate() - today.getDay());
 
-    switch (activeFilter) {
-      case "today":
-        filtered = filtered.filter(
-          (invoice) => new Date(invoice.createdAt) >= today
-        );
-        break;
-      case "yesterday":
-        filtered = filtered.filter((invoice) => {
-          const date = new Date(invoice.createdAt);
-          return date >= yesterday && date < today;
-        });
-        break;
-      case "thisWeek":
-        filtered = filtered.filter(
-          (invoice) => new Date(invoice.createdAt) >= thisWeekStart
-        );
-        break;
-      case "past":
-        filtered = filtered.filter(
-          (invoice) => new Date(invoice.createdAt) < thisWeekStart
-        );
-        break;
-      default:
-        break;
+    // Apply date range filter if active
+    if (startDate && endDate && activeFilter === "custom") {
+      // Set end date to end of day for inclusive filtering
+      const endOfDay = new Date(endDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      filtered = filtered.filter(invoice => {
+        const invoiceDate = new Date(invoice.createdAt);
+        return invoiceDate >= startDate && invoiceDate <= endOfDay;
+      });
+    } else {
+      // Apply preset filters if no custom date range
+      switch (activeFilter) {
+        case "today":
+          filtered = filtered.filter(
+            (invoice) => new Date(invoice.createdAt) >= today
+          );
+          break;
+        case "yesterday":
+          filtered = filtered.filter((invoice) => {
+            const date = new Date(invoice.createdAt);
+            return date >= yesterday && date < today;
+          });
+          break;
+        case "thisWeek":
+          filtered = filtered.filter(
+            (invoice) => new Date(invoice.createdAt) >= thisWeekStart
+          );
+          break;
+        case "past":
+          filtered = filtered.filter(
+            (invoice) => new Date(invoice.createdAt) < thisWeekStart
+          );
+          break;
+        default:
+          break;
+      }
     }
 
     // Apply search filter
@@ -110,7 +131,32 @@ const Invoices = ({ searchQuery }) => {
       0
     );
     setCurrentTotal(total);
-  }, [activeFilter, searchQuery, invoices]);
+  }, [activeFilter, searchQuery, invoices, startDate, endDate]);
+
+  const handleFilterChange = (filter) => {
+    setActiveFilter(filter);
+    if (filter === "custom") {
+      setShowDateFilter(true);
+    } else {
+      setShowDateFilter(false);
+    }
+  };
+
+  const handleDateFilterApply = () => {
+    if (startDate && endDate) {
+      setActiveFilter("custom");
+      setShowDateFilter(false);
+    } else {
+      toast.error("Please select both start and end dates");
+    }
+  };
+
+  const handleDateFilterClear = () => {
+    setStartDate(null);
+    setEndDate(null);
+    setActiveFilter("all");
+    setShowDateFilter(false);
+  };
 
   const handleWhatsAppShare = (invoice) => {
     setSelectedInvoice(invoice);
@@ -446,7 +492,7 @@ const Invoices = ({ searchQuery }) => {
       if (!confirmResult) return;
 
       const response = await axios.get(
-        `https://temiperi-stocks-backend.onrender.com/temiperi/delete-invoice?id=${invoiceId}`
+        `https://temiperi-eaze.onrender.com/temiperi/delete-invoice?id=${invoiceId}`
       );
 
       if (response.data) {
@@ -478,7 +524,7 @@ const Invoices = ({ searchQuery }) => {
   const handleSaveEdit = async (editedInvoice) => {
     try {
       const response = await axios.post(
-        `https://temiperi-stocks-backend.onrender.com/temiperi/update-invoice?id=${editedInvoice._id}`,
+        `https://temiperi-eaze.onrender.com/temiperi/update-invoice?id=${editedInvoice._id}`,
         editedInvoice
       );
 
@@ -512,7 +558,7 @@ const Invoices = ({ searchQuery }) => {
 
   return (
     <div className="pt-4 md:px-6 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between mb-4">
         <h1 className="text-3xl font-medium">Invoices</h1>
         <button className="bg-blue py-2 px-4 rounded text-white hover:bg-opacity-80">
           WayBill
@@ -520,30 +566,98 @@ const Invoices = ({ searchQuery }) => {
       </div>
 
       {/* Filter Buttons */}
-      <div className="flex flex-wrap gap-2">
-        {["all", "today", "yesterday", "thisWeek", "past"].map((filter) => (
-          <button
-            key={filter}
-            onClick={() => setActiveFilter(filter)}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
-                            ${
-                              activeFilter === filter
-                                ? "bg-blue text-white"
-                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                            }`}
-          >
-            {filter === "all"
-              ? "All Invoices"
-              : filter === "today"
-              ? "Today's Invoices"
-              : filter === "yesterday"
-              ? "Yesterday's Invoices"
-              : filter === "thisWeek"
-              ? "This Week's Invoices"
-              : "Past Invoices"}
-          </button>
-        ))}
+      <div className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          {["all", "today", "yesterday", "thisWeek", "past", "custom"].map((filter) => (
+            <button
+              key={filter}
+              onClick={() => handleFilterChange(filter)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
+                ${
+                  activeFilter === filter
+                    ? "bg-blue text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+            >
+              {filter === "all"
+                ? "All Invoices"
+                : filter === "today"
+                ? "Today's Invoices"
+                : filter === "yesterday"
+                ? "Yesterday's Invoices"
+                : filter === "thisWeek"
+                ? "This Week's Invoices" 
+                : filter === "past"
+                ? "Past Invoices"
+                : "Custom Date Range"}
+            </button>
+          ))}
+        </div>
+        
+        {/* Date Range Picker */}
+        {showDateFilter && (
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            <div className="flex flex-col md:flex-row gap-4 items-end">
+              <div className="w-full md:w-auto">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                <div className="relative">
+                  <DatePicker
+                    selected={startDate}
+                    onChange={date => setStartDate(date)}
+                    selectsStart
+                    startDate={startDate}
+                    endDate={endDate}
+                    maxDate={new Date()}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    placeholderText="Select start date"
+                  />
+                  <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                </div>
+              </div>
+              <div className="w-full md:w-auto">
+                <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                <div className="relative">
+                  <DatePicker
+                    selected={endDate}
+                    onChange={date => setEndDate(date)}
+                    selectsEnd
+                    startDate={startDate}
+                    endDate={endDate}
+                    minDate={startDate}
+                    maxDate={new Date()}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    placeholderText="Select end date"
+                  />
+                  <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  onClick={handleDateFilterApply}
+                  className="bg-blue text-white px-4 py-2 rounded-md hover:bg-opacity-80"
+                >
+                  Apply
+                </button>
+                <button 
+                  onClick={handleDateFilterClear}
+                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Active Filter Display */}
+      {activeFilter === "custom" && startDate && endDate && (
+        <div className="bg-blue bg-opacity-10 border border-blue-200 rounded-md p-2">
+          <p className="text-blue font-medium">
+            Showing invoices from {startDate.toLocaleDateString()} to {endDate.toLocaleDateString()}
+          </p>
+        </div>
+      )}
 
       {/* Invoice Table */}
       <InvoiceTable
@@ -609,7 +723,9 @@ const Invoices = ({ searchQuery }) => {
             ? "Yesterday's Total Sales: "
             : activeFilter === "thisWeek"
             ? "This Week's Total Sales: "
-            : "Past Total Sales: "}
+            : activeFilter === "past"
+            ? "Past Total Sales: "
+            : "Custom Range Total Sales: "}
           <span className="text-blue font-bold">
             GH₵{currentTotal.toFixed(2)}
           </span>

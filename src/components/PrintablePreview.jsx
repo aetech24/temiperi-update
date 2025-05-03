@@ -122,6 +122,16 @@ const PrintablePreview = ({ data, previewItems, isContinuation = false }) => {
             <h4 className="text-gray-800 font-semibold">
               Payment Method: {data.paymentMethod || "Not Selected"}
             </h4>
+
+            {/* Show scheduled delivery information if applicable */}
+            {data.isScheduled && (
+              <div className="mt-2 pt-2 border-t border-gray-200">
+                <h4 className="text-gray-800 font-semibold">Scheduled for Delivery</h4>
+                <p className="text-gray-600">Delivery Date: {data.deliveryDate?.toLocaleDateString()}</p>
+                {data.deliveryAddress && <p className="text-gray-600">Address: {data.deliveryAddress}</p>}
+                {data.deliveryNotes && <p className="text-gray-600">Notes: {data.deliveryNotes}</p>}
+              </div>
+            )}
           </div>
         </div>
 
@@ -186,6 +196,31 @@ const PrintablePreview = ({ data, previewItems, isContinuation = false }) => {
             </tr>
           </tfoot>
         </table>
+
+        {/* Payment Details */}
+        <div className="mt-6 p-4 bg-white rounded-lg">
+          <h3 className="text-xl font-semibold text-gray-800 mb-3">Payment Details</h3>
+          <table className="w-full">
+            <tbody>
+              <tr>
+                <td className="py-2 font-medium">Total Amount:</td>
+                <td className="py-2 text-right">GH₵{totalAmount.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td className="py-2 font-medium">Amount Paid:</td>
+                <td className="py-2 text-right">GH₵{(parseFloat(data.amountPaid) || totalAmount).toFixed(2)}</td>
+              </tr>
+              <tr className={`${data.balance >= 0 ? 'text-green-800' : 'text-red-800'}`}>
+                <td className="py-2 font-medium">Balance/Change:</td>
+                <td className="py-2 text-right font-bold">
+                  GH₵{(data.balance || 0).toFixed(2)}
+                  {data.balance > 0 && " (Change)"}
+                  {data.balance < 0 && " (Owing)"}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
         {/* Footer */}
         <div className="mt-10 pt-5 border-t-2 border-gray-200">
